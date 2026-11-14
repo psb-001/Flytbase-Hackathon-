@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questionathon — what the brief actually asks for</title>
+<style>
+  :root{
+    --paper:#F2ECE0;
+    --paper-2:#FBF7ED;
+    --paper-3:#EDE5D6;
+    --ink:#161310;
+    --ink-2:#37322B;
+    --muted:#6E6557;
+    --rule:#161310;
+    --orange:#D2661F;
+    --orange-soft:#F7E1CB;
+    --cyan:#1C8FAF;
+    --cyan-soft:#DCEFF4;
+    --green:#2C6647;
+    --green-soft:#DCEADF;
+    --red:#A0301C;
+    --red-soft:#F3DCD6;
+    --amber:#9A6C08;
+    --amber-soft:#F5E7C4;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --max:1120px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:16.5px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:0;
+    opacity:.5;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.14'/></svg>");
+  }
+  .wrap{position:relative; z-index:1; max-width:var(--max); margin:0 auto; padding:0 28px 96px}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:relative; z-index:2;
+    border-bottom:2px solid var(--rule);
+    background:var(--paper-2);
+    margin-bottom:0;
+  }
+  .topbar .inner{
+    max-width:var(--max); margin:0 auto; padding:10px 28px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:11px; letter-spacing:.04em;
+  }
+  .brand{font-weight:700; letter-spacing:.1em; text-transform:uppercase}
+  .divider{width:1px; height:16px; background:var(--rule); opacity:.35}
+  .tag{
+    border:1.5px solid var(--rule); padding:2px 7px; background:var(--paper);
+    text-transform:uppercase; letter-spacing:.09em; font-size:10px;
+  }
+  .tag.cyan{border-color:var(--cyan); color:var(--cyan)}
+  .push{margin-left:auto}
+  .backlink{
+    font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.1em;
+    border:2px solid var(--rule); padding:5px 10px; text-decoration:none; color:var(--ink);
+    background:var(--paper-2);
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead{padding:56px 0 12px; border-bottom:2px solid var(--rule)}
+  .kicker{
+    font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--orange); margin:0 0 18px;
+  }
+  h1{
+    font-family:var(--mono); font-weight:700; letter-spacing:-.025em;
+    font-size:clamp(30px,4.4vw,50px); line-height:1.08; margin:0 0 22px; max-width:20ch;
+  }
+  h1 em{font-style:normal; color:var(--orange)}
+  .deck{font-size:clamp(17px,1.6vw,20px); line-height:1.55; max-width:66ch; color:var(--ink-2); margin:0 0 34px}
+  .deck strong{color:var(--ink); background:linear-gradient(transparent 62%, var(--orange-soft) 62%)}
+  .facts{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    border-top:2px solid var(--rule); margin-top:8px;
+  }
+  .fact{padding:16px 18px 18px 0; border-right:1.5px solid rgba(22,19,16,.22); min-width:0}
+  .fact:last-child{border-right:0; padding-right:0}
+  .fact dt{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 6px}
+  .fact dd{margin:0; font-family:var(--mono); font-size:13.5px; font-weight:700; letter-spacing:-.01em}
+
+  /* ---------- sections ---------- */
+  section{margin-top:64px}
+  .sechead{display:flex; align-items:center; gap:12px; margin-bottom:10px}
+  .num{
+    flex:0 0 auto; width:26px; height:26px; background:var(--ink); color:var(--paper-2);
+    font-family:var(--mono); font-size:13px; font-weight:700; display:grid; place-items:center;
+  }
+  .sechead h2{
+    font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; margin:0;
+  }
+  .sechead .note{font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:.02em}
+  .secrule{height:2px; background:var(--rule); margin-bottom:26px}
+  .lead{font-size:17px; max-width:70ch; color:var(--ink-2); margin:0 0 26px}
+  .lead strong{color:var(--ink)}
+
+  /* ---------- verdict ---------- */
+  .verdict{
+    border:2px solid var(--rule); background:var(--paper-2);
+    padding:26px 28px; margin-top:34px;
+    box-shadow:6px 6px 0 var(--ink);
+  }
+  .verdict .label{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--orange); margin-bottom:12px; display:block;
+  }
+  .verdict p{margin:0; font-size:19px; line-height:1.55; max-width:74ch}
+  .verdict p + p{margin-top:14px; font-size:16px; color:var(--ink-2)}
+
+  /* ---------- cards ---------- */
+  .grid-4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+  .grid-2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+  .card{
+    border:2px solid var(--rule); background:var(--paper-2); padding:16px 17px; min-width:0;
+    display:flex; flex-direction:column;
+  }
+  .card h3{
+    font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; margin:0 0 10px; display:flex; gap:8px; align-items:baseline;
+  }
+  .card h3 .idx{color:var(--orange)}
+  .card p{margin:0; font-size:14.5px; line-height:1.5; color:var(--ink-2)}
+  .card ul{margin:0; padding-left:0; list-style:none; font-size:13.5px; line-height:1.45}
+  .card li{position:relative; padding-left:14px; margin-bottom:5px; color:var(--ink-2)}
+  .card li::before{content:"▸"; position:absolute; left:0; color:var(--orange); font-size:11px; top:1px}
+  .card .foot{
+    margin-top:auto; padding-top:12px; font-family:var(--mono); font-size:10px;
+    letter-spacing:.05em; color:var(--muted); text-transform:uppercase;
+  }
+
+  /* ---------- question blocks ---------- */
+  .q{
+    border:2px solid var(--rule); background:var(--paper-2); margin-bottom:14px;
+    padding:0; overflow:hidden;
+  }
+  .q-head{
+    display:flex; align-items:baseline; gap:14px; padding:14px 20px;
+    border-bottom:1.5px solid rgba(22,19,16,.25); background:var(--paper-3);
+  }
+  .q-id{font-family:var(--mono); font-size:11px; font-weight:700; color:var(--orange); letter-spacing:.1em}
+  .q-title{font-family:var(--mono); font-size:15px; font-weight:700; letter-spacing:-.01em; margin:0}
+  .q-tag{
+    margin-left:auto; font-family:var(--mono); font-size:9px; letter-spacing:.12em;
+    text-transform:uppercase; border:1.5px solid var(--rule); padding:2px 6px; color:var(--muted);
+  }
+  .q-body{display:grid; grid-template-columns:1fr 1fr; gap:0}
+  .q-col{padding:14px 20px 16px; font-size:14.5px; line-height:1.5; min-width:0}
+  .q-col + .q-col{border-left:1.5px dashed rgba(22,19,16,.3)}
+  .q-col .tagline{
+    font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+    display:inline-block; margin-bottom:7px; padding:1px 5px;
+  }
+  .strong .tagline{background:var(--green); color:var(--paper-2)}
+  .weak .tagline{background:var(--paper-3); color:var(--muted); border:1px solid rgba(22,19,16,.3)}
+  .weak{color:var(--muted)}
+  .weak .body{text-decoration:line-through; text-decoration-color:rgba(110,101,87,.45); text-decoration-thickness:1px}
+  .q-req{
+    border-top:1.5px solid rgba(22,19,16,.25); background:var(--cyan-soft);
+    padding:11px 20px; font-family:var(--mono); font-size:12px; line-height:1.5;
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .q-req b{color:var(--cyan); font-weight:700; flex:0 0 auto; letter-spacing:.06em; font-size:10px; padding-top:2px}
+
+  /* ---------- table ---------- */
+  .tablewrap{overflow-x:auto; border:2px solid var(--rule); background:var(--paper-2)}
+  table{border-collapse:collapse; width:100%; min-width:940px}
+  th,td{text-align:left; vertical-align:top; padding:13px 14px; font-size:13px; line-height:1.45}
+  thead th{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase;
+    border-bottom:2px solid var(--rule); background:var(--paper-3); color:var(--ink);
+    position:sticky; top:0;
+  }
+  tbody tr + tr td{border-top:1.5px solid rgba(22,19,16,.2)}
+  tbody td:first-child{font-family:var(--mono); font-size:11.5px; font-weight:700; letter-spacing:.02em}
+  td.weakcell{color:var(--muted)}
+  td.strongcell{background:var(--green-soft); font-weight:600; color:var(--ink)}
+  td.mech{font-family:var(--mono); font-size:11px; line-height:1.5; color:var(--cyan); background:var(--cyan-soft)}
+  .col-wide{min-width:190px}
+
+  /* ---------- rules ---------- */
+  .rules{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .rulebox{border:2px solid var(--rule); background:var(--paper-2); padding:18px 20px}
+  .rulebox h3{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; margin:0 0 14px}
+  .rulebox.do h3{color:var(--green)}
+  .rulebox.dont h3{color:var(--red)}
+  .rulebox ol{margin:0; padding:0; list-style:none; counter-reset:r}
+  .rulebox li{
+    position:relative; padding-left:24px; margin-bottom:9px; font-size:14px; line-height:1.45; color:var(--ink-2);
+    counter-increment:r;
+  }
+  .rulebox li::before{
+    content:counter(r); position:absolute; left:0; top:1px; font-family:var(--mono); font-size:10px;
+    font-weight:700; border:1.5px solid currentColor; width:16px; height:16px; display:grid; place-items:center;
+  }
+  .rulebox.do li::before{color:var(--green)}
+  .rulebox.dont li::before{color:var(--red)}
+
+  .callout{
+    border:2px dashed var(--cyan); background:var(--cyan-soft);
+    padding:18px 20px; margin-top:14px;
+  }
+  .callout .k{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--cyan); display:block; margin-bottom:8px;
+  }
+  .callout p{margin:0; font-size:14.5px; line-height:1.55}
+  .callout p + p{margin-top:9px}
+  .callout strong{color:var(--ink)}
+
+  /* ---------- figures ---------- */
+  figure{margin:0}
+  .fig{
+    border:2px solid var(--rule); background:var(--paper-2); padding:20px 20px 12px; margin:0 0 14px;
+  }
+  .fig svg{width:100%; height:auto; display:block; color:var(--ink)}
+  .figcap{
+    display:flex; gap:14px; align-items:flex-start; padding:12px 20px 0;
+    border-top:1.5px solid rgba(22,19,16,.2); margin-top:14px;
+  }
+  .figcap .n{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--orange); flex:0 0 auto; padding-top:3px;
+  }
+  .figcap p{margin:0; font-size:13.5px; line-height:1.5; color:var(--ink-2)}
+  .figcap p b{color:var(--ink)}
+
+  /* ---------- architecture legend ---------- */
+  .legend{display:flex; flex-wrap:wrap; gap:18px; margin-top:16px; font-family:var(--mono); font-size:10.5px; color:var(--muted)}
+  .legend span{display:flex; align-items:center; gap:7px}
+  .swatch{width:14px; height:10px; border:1.5px solid var(--rule); flex:0 0 auto}
+  .swatch.dash{border-style:dashed}
+  .swatch.cy{border-color:var(--cyan); background:var(--cyan-soft)}
+  .swatch.gn{border-color:var(--green); background:var(--green-soft)}
+
+  /* ---------- clock ---------- */
+  .clock{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); border:2px solid var(--rule); background:var(--paper-2)}
+  .stop{padding:16px 15px 18px; border-right:1.5px solid rgba(22,19,16,.22); position:relative; min-width:0}
+  .stop:last-child{border-right:0}
+  .stop .t{font-family:var(--mono); font-size:15px; font-weight:700; letter-spacing:-.02em; color:var(--orange)}
+  .stop .ttl{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; margin:3px 0 9px; color:var(--ink)}
+  .stop p{margin:0; font-size:12.5px; line-height:1.45; color:var(--muted)}
+  .stop.hard .t{color:var(--red)}
+
+  /* ---------- traps ---------- */
+  .trap{
+    display:grid; grid-template-columns:28px 1fr; gap:14px; padding:14px 0;
+    border-bottom:1.5px solid rgba(22,19,16,.18);
+  }
+  .trap:last-child{border-bottom:0}
+  .trap .x{
+    font-family:var(--mono); font-weight:700; color:var(--red); border:1.5px solid var(--red);
+    width:22px; height:22px; display:grid; place-items:center; font-size:12px;
+  }
+  .trap h4{margin:0 0 3px; font-family:var(--mono); font-size:13px; letter-spacing:-.01em}
+  .trap p{margin:0; font-size:14px; color:var(--ink-2); line-height:1.5}
+
+  /* ---------- handover ---------- */
+  .handover{border:2px solid var(--rule); background:var(--ink); color:var(--paper-2); padding:28px 30px; margin-top:16px}
+  .handover h3{font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin:0 0 6px; color:var(--orange)}
+  .handover > p{margin:0 0 20px; font-size:15px; color:rgba(251,247,237,.72); max-width:70ch}
+  .asklist{display:grid; grid-template-columns:1fr 1fr; gap:10px 26px; margin:0; padding:0; list-style:none}
+  .asklist li{
+    display:flex; gap:11px; align-items:flex-start; font-size:14px; line-height:1.45;
+    border-bottom:1px solid rgba(251,247,237,.18); padding-bottom:9px;
+  }
+  .asklist .n{
+    font-family:var(--mono); font-size:10px; color:var(--orange); flex:0 0 auto; padding-top:2px;
+  }
+  .asklist b{color:var(--paper-2)}
+  .asklist span{color:rgba(251,247,237,.62)}
+
+  /* ---------- options ---------- */
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px}
+  .opt{border:2px solid var(--rule); background:var(--paper-2); padding:18px 20px; position:relative}
+  .opt.rec{box-shadow:6px 6px 0 var(--ink)}
+  .opt .badge{
+    position:absolute; top:-11px; left:16px; background:var(--orange); color:#fff;
+    font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; padding:3px 8px;
+  }
+  .opt h4{font-family:var(--mono); font-size:13px; margin:6px 0 4px; letter-spacing:-.01em}
+  .opt .cost{font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px}
+  .opt ul{margin:0; padding:0; list-style:none; font-size:13.5px; line-height:1.5}
+  .opt li{position:relative; padding-left:16px; margin-bottom:6px; color:var(--ink-2)}
+  .opt li::before{position:absolute; left:0; font-family:var(--mono); font-size:11px; top:1px}
+  .opt li.plus::before{content:"+"; color:var(--green); font-weight:700}
+  .opt li.minus::before{content:"−"; color:var(--red); font-weight:700}
+
+  footer{
+    margin-top:64px; padding-top:18px; border-top:2px solid var(--rule);
+    font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:.03em;
+    display:flex; gap:18px; flex-wrap:wrap;
+  }
+  footer .push{margin-left:auto}
+
+  .mono{font-family:var(--mono)}
+  code{
+    font-family:var(--mono); font-size:.88em; background:var(--paper-3); color:var(--ink);
+    padding:1px 5px; border:1px solid rgba(22,19,16,.18);
+    overflow-wrap:anywhere; word-break:break-word;
+  }
+  .handover code{background:var(--paper-3); color:var(--ink); border-color:rgba(22,19,16,.3)}
+
+  @media (max-width:900px){
+    .facts{grid-template-columns:1fr 1fr}
+    .fact:nth-child(2){border-right:0}
+    .fact:nth-child(1),.fact:nth-child(2){border-bottom:1.5px solid rgba(22,19,16,.22)}
+    .grid-4{grid-template-columns:1fr 1fr}
+    .q-body{grid-template-columns:1fr}
+    .q-col + .q-col{border-left:0; border-top:1.5px dashed rgba(22,19,16,.3)}
+    .rules,.opts,.asklist{grid-template-columns:1fr}
+    .clock{grid-template-columns:1fr}
+    .stop{border-right:0; border-bottom:1.5px solid rgba(22,19,16,.22)}
+  }
+  @media (max-width:620px){
+    .wrap{padding:0 18px 72px}
+    .topbar .inner{padding:10px 18px}
+    .grid-4,.grid-2{grid-template-columns:1fr}
+    .facts{grid-template-columns:1fr}
+    .fact{border-right:0; border-bottom:1.5px solid rgba(22,19,16,.22); padding-right:0}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <span class="brand">Questionathon</span>
+    <span class="divider"></span>
+    <span class="tag">Solo</span>
+    <span class="tag">2 accounts</span>
+    <span class="tag cyan">1 call / minute</span>
+    <span class="push"></span>
+    <a class="backlink" href="#handover">Next → hand over token</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="kicker">Read of the brief · 14 Nov · from the Hand-in and Your Data tabs</p>
+    <h1>They are not asking for a CRM. They are asking for a <em>Monday briefing</em> you can defend.</h1>
+    <p class="deck">
+      Two live accounts, pulled through an MCP, rendered into five answers each — and
+      <strong>every number on the screen traces back to an id</strong>. The CRM is the artefact.
+      The thing being graded is whether a manager could act on it on Monday without asking you a single follow-up question.
+    </p>
+    <dl class="facts">
+      <div class="fact"><dt>Window</dt><dd>14:00 → 03:47</dd></div>
+      <div class="fact"><dt>Data</dt><dd>Live, via MCP</dd></div>
+      <div class="fact"><dt>Hand in</dt><dd>4 links</dd></div>
+      <div class="fact"><dt>Team</dt><dd>You alone</dd></div>
+    </dl>
+  </header>
+
+  <!-- ============ 0 ============ -->
+  <section>
+    <div class="verdict">
+      <span class="label">The one-sentence version</span>
+      <p>
+        Build a hosted dashboard that reads two Flytbase accounts through the MCP, and for each one answers
+        <b>what the book is worth</b>, <b>who holds the power</b>, <b>what to do first</b>, <b>what is about to break</b>,
+        and <b>what you still do not know</b> — with a clickable citation behind every figure.
+      </p>
+      <p>
+        Judgement is the product. Polish is only how the judgement gets read. A beautiful dashboard with one unsourced total scores
+        below an ugly one where every row carries an id.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section id="links">
+    <div class="sechead">
+      <span class="num">1</span>
+      <h2>Four links get graded</h2>
+      <span class="note">/ Hand in tab</span>
+    </div>
+    <div class="secrule"></div>
+    <p class="lead">
+      Each one is scored independently, and each one can sink the others. The live link is the only thing judges touch first —
+      if it does not load in a private window, nothing else is read.
+    </p>
+
+    <div class="grid-4">
+      <div class="card">
+        <h3><span class="idx">01</span> Live CRM</h3>
+        <ul>
+          <li>Hosted — works with your laptop shut</li>
+          <li>Opens in a private window</li>
+          <li>Covers both accounts</li>
+        </ul>
+        <div class="foot">Judges open it and score it</div>
+      </div>
+      <div class="card">
+        <h3><span class="idx">02</span> Public repo</h3>
+        <ul>
+          <li>Public, no sign-in</li>
+          <li>README says how to run it</li>
+          <li>No token anywhere in the code</li>
+        </ul>
+        <div class="foot">Checks whether it is real</div>
+      </div>
+      <div class="card">
+        <h3><span class="idx">03</span> Thinking doc</h3>
+        <ul>
+          <li>What it does, and for whom</li>
+          <li>How it decides — the rules</li>
+          <li>What it does not yet do</li>
+          <li>How you used AI</li>
+        </ul>
+        <div class="foot">One page · Google Doc</div>
+      </div>
+      <div class="card">
+        <h3><span class="idx">04</span> Walkthrough</h3>
+        <ul>
+          <li>Live answers, one account</li>
+          <li>One number traced to source</li>
+          <li>It picking up something new</li>
+          <li>The code, briefly</li>
+        </ul>
+        <div class="foot">3 minutes · Google Drive</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:16px">
+      <span class="k">Read between the lines</span>
+      <p>
+        The video brief is a spec in disguise. <b>"One number traced to its source"</b> means tracing must be a
+        two-second gesture on screen, not a paragraph in the doc. <b>"It picking up something new"</b> means the
+        demo has to show ingestion happening live — so the signals pipeline cannot be an afterthought.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section id="five">
+    <div class="sechead">
+      <span class="num">2</span>
+      <h2>The five answers — this is the product spec</h2>
+      <span class="note">/ identical for both accounts</span>
+    </div>
+    <div class="secrule"></div>
+    <p class="lead">
+      This is the closest thing to a requirements document in the whole brief. Each question has a
+      <strong>weak</strong> version that reads like a generic CRM and a <strong>strong</strong> version that reads like
+      someone who did the work. The third line is mine: what the screen has to do to make the strong answer true.
+    </p>
+
+    <div class="q">
+      <div class="q-head">
+        <span class="q-id">Q1</span>
+        <h3 class="q-title">What is the book worth?</h3>
+        <span class="q-tag">Money</span>
+      </div>
+      <div class="q-body">
+        <div class="q-col strong">
+          <span class="tagline">Strong</span>
+          <p class="body">Each deal at a value you can back, with the file or person behind it. What you cannot back is shown apart.</p>
+        </div>
+        <div class="q-col weak">
+          <span class="tagline">Weak</span>
+          <p class="body">One big total, copied from what a champion said.</p>
+        </div>
+      </div>
+      <div class="q-req"><b>SCREEN →</b><span>Three buckets, never one number: <b>Backed</b> (verified + qualified/agreed), <b>Claimed</b> (told to us, no file), <b>Unknown</b> (never heard of). Deal value only exists after <code>qualified</code> — the schema says so — so anything before that is labelled, not summed.</span></div>
+    </div>
+
+    <div class="q">
+      <div class="q-head">
+        <span class="q-id">Q2</span>
+        <h3 class="q-title">Who holds the power?</h3>
+        <span class="q-tag">People</span>
+      </div>
+      <div class="q-body">
+        <div class="q-col strong">
+          <span class="tagline">Strong</span>
+          <p class="body">For each deal: who decides, who pays, who uses it, who could block it, and where each stands with you.</p>
+        </div>
+        <div class="q-col weak">
+          <span class="tagline">Weak</span>
+          <p class="body">A list of contacts.</p>
+        </div>
+      </div>
+      <div class="q-req"><b>SCREEN →</b><span>Four named roles per deal, each a person id + warmth (<code>guarded · neutral · warm · ally</code>) + "waiting on". Unfilled role is a <b>gap</b>, never filled by a guess. The account sheet already lists stakeholders you have never met — those are the Q5 answers.</span></div>
+    </div>
+
+    <div class="q">
+      <div class="q-head">
+        <span class="q-id">Q3</span>
+        <h3 class="q-title">What do you do first?</h3>
+        <span class="q-tag">Action</span>
+      </div>
+      <div class="q-body">
+        <div class="q-col strong">
+          <span class="tagline">Strong</span>
+          <p class="body">The first three moves, ranked, each with an owner, a date and the deal it moves.</p>
+        </div>
+        <div class="q-col weak">
+          <span class="tagline">Weak</span>
+          <p class="body">Follow up with the client.</p>
+        </div>
+      </div>
+      <div class="q-req"><b>SCREEN →</b><span>Exactly three, ranked by a written score: deadline proximity × value × stage × blocker status. Owner must be a real Flytbase person id. Date must land <b>inside</b> the deal's deadline. Every move cites the deal id it advances.</span></div>
+    </div>
+
+    <div class="q">
+      <div class="q-head">
+        <span class="q-id">Q4</span>
+        <h3 class="q-title">What is about to go wrong?</h3>
+        <span class="q-tag">Risk</span>
+      </div>
+      <div class="q-body">
+        <div class="q-col strong">
+          <span class="tagline">Strong</span>
+          <p class="body">Deadlines at risk, people going cold, deals that are stuck, and when each turns bad.</p>
+        </div>
+        <div class="q-col weak">
+          <span class="tagline">Weak</span>
+          <p class="body">Everything marked green.</p>
+        </div>
+      </div>
+      <div class="q-req"><b>SCREEN →</b><span>Four detectors, each with a <b>date it turns bad</b>, not a colour: deadline breach, warmth decay (no contact, or dropped a level), stage stall, and live signal. Red must be earned by a rule — never by vibes.</span></div>
+    </div>
+
+    <div class="q">
+      <div class="q-head">
+        <span class="q-id">Q5</span>
+        <h3 class="q-title">What do you still not know?</h3>
+        <span class="q-tag">Gaps</span>
+      </div>
+      <div class="q-body">
+        <div class="q-col strong">
+          <span class="tagline">Strong</span>
+          <p class="body">The gaps your plan rests on, and who could fill each one.</p>
+        </div>
+        <div class="q-col weak">
+          <span class="tagline">Weak</span>
+          <p class="body">No gaps, or guesses shown as facts.</p>
+        </div>
+      </div>
+      <div class="q-req"><b>SCREEN →</b><span>Gaps are <b>computed</b>, not narrated: missing role, fact still at <code>claim</code>, deal with no owner, "never met" stakeholder, deadline with no offer. Each row names a person who could close it. "No gaps" is a scoring failure, not a win.</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section id="rubric">
+    <div class="sechead">
+      <span class="num">3</span>
+      <h2>The rubric, translated into engineering</h2>
+      <span class="note">/ judges read it like your manager</span>
+    </div>
+    <div class="secrule"></div>
+    <p class="lead">
+      Five rows, three levels each. The right-hand column is the mechanism that gets us to <strong>Strong</strong> — this is
+      what I would actually be building, listed against what it earns.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px">Dimension</th>
+            <th class="col-wide">Weak</th>
+            <th class="col-wide">Solid</th>
+            <th class="col-wide">Strong — the bar</th>
+            <th class="col-wide">What we build</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Answers the five</td>
+            <td class="weakcell">A view of the data</td>
+            <td>Some answers, for one account</td>
+            <td class="strongcell">All five, for both accounts, and you could act on them on Monday</td>
+            <td class="mech">Five fixed panels, same five on each account, empty states that say why</td>
+          </tr>
+          <tr>
+            <td>Numbers you can back</td>
+            <td class="weakcell">Totals with no source</td>
+            <td>Most numbers cite an id</td>
+            <td class="strongcell">Every number cites its id; nothing rests on a claim alone; no invented ids</td>
+            <td class="mech">A <code>&lt;Cite id&gt;</code> wrapper on every figure + source drawer showing the raw payload</td>
+          </tr>
+          <tr>
+            <td>The right first moves</td>
+            <td class="weakcell">Generic to-dos</td>
+            <td>Sensible moves, not ranked or dated</td>
+            <td class="strongcell">Ranked, owned and dated inside every deadline</td>
+            <td class="mech">Deterministic scorer, owner from <code>flytbase_people</code>, date clamped to the deadline</td>
+          </tr>
+          <tr>
+            <td>Honest about gaps</td>
+            <td class="weakcell">Guesses shown as facts</td>
+            <td>Some unknowns listed</td>
+            <td class="strongcell">What it does not know, why it matters and who to ask</td>
+            <td class="mech">Gap engine over role coverage, fact status and "never met" people</td>
+          </tr>
+          <tr>
+            <td>Stays live</td>
+            <td class="weakcell">Built once from a copy</td>
+            <td>Up to date after a reload</td>
+            <td class="strongcell">Takes in new data by itself, and writes notes back</td>
+            <td class="mech">60s scheduler ingesting <code>get_signals</code>, diffed and pushed to the open tab; <code>write_note</code> queued</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lead" style="margin-top:18px; font-size:15px">
+      Also printed in the brief: <em>"Your morning counts too. Judges may ask you to walk them through your CRM, live."</em>
+      So the interface has to be defensible under interrogation — someone clicks a number at random and we explain where it came from
+      without leaving the page.
+    </p>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section id="rules">
+    <div class="sechead">
+      <span class="num">4</span>
+      <h2>The rules that shape the build</h2>
+      <span class="note">/ not style advice — architecture</span>
+    </div>
+    <div class="secrule"></div>
+
+    <div class="rules">
+      <div class="rulebox do">
+        <h3>Do</h3>
+        <ol>
+          <li>Use any tools you like, AI included.</li>
+          <li>Fetch once and store it: each token gets one call a minute.</li>
+          <li>Keep your token on a server, never in browser code.</li>
+          <li>Expect your data to change while you build.</li>
+          <li>Hand in early — you can change links until time is called.</li>
+        </ol>
+      </div>
+      <div class="rulebox dont">
+        <h3>Do not</h3>
+        <ol>
+          <li>Show a number without its source.</li>
+          <li>Invent an id, a fact or a person.</li>
+          <li>Work with other players — this is solo.</li>
+          <li>Leave the hand-in to the last minute.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="k">The constraint that decides the architecture</span>
+      <p>
+        <strong>One call per minute, writes included.</strong> That is roughly 800 calls for the whole build window —
+        and the data arrives as nested per-account JSON with separate paperwork, feature requests, release notes, people and signals.
+        So: <strong>one full ingest</strong>, everything persisted, and <strong>every screen a read of our own store</strong>.
+        The MCP is a source, never a render path.
+      </p>
+      <p>
+        The corollary is the one teams get wrong: because we cannot re-fetch per page view, the store has to be
+        <strong>versioned</strong>. Judges check numbers against "your morning" — so each ingest is a timestamped snapshot,
+        and a citation says which snapshot it came from. When the payload changes mid-build (it will), we show a diff
+        instead of silently rewriting history.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section id="data">
+    <div class="sechead">
+      <span class="num">5</span>
+      <h2>What the data actually is</h2>
+      <span class="note">/ read off the Your Data tab</span>
+    </div>
+    <div class="secrule"></div>
+    <p class="lead">
+      The brief hands us a provenance model and a set of enums. It is worth being literal about them, because the
+      rubric is basically "did you respect this model".
+    </p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 920 300" role="img" aria-labelledby="fig1title fig1desc">
+        <title id="fig1title">The evidence ladder: a claim becomes told, then verified, then cited</title>
+        <desc id="fig1desc">Four states left to right: claim from the account sheet, told by a named person, verified by a file you hold, cited on screen with an id.</desc>
+        <defs>
+          <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- rail behind -->
+        <line x1="20" y1="92" x2="900" y2="92" stroke="currentColor" stroke-width="1" opacity=".12"/>
+
+        <!-- 1 CLAIM -->
+        <g id="step-claim">
+          <rect x="20" y="40" width="178" height="104" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="6 4" opacity=".65"/>
+          <text x="38" y="72" font-family="ui-monospace,Menlo,monospace" font-size="15" font-weight="700" fill="currentColor" opacity=".7">CLAIM</text>
+          <text x="38" y="94" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".55">the account sheet</text>
+          <text x="38" y="108" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".55">nobody has checked it</text>
+        </g>
+
+        <!-- 2 TOLD -->
+        <g id="step-told">
+          <rect x="254" y="40" width="178" height="104" fill="#F7E1CB" stroke="currentColor" stroke-width="1.6"/>
+          <text x="272" y="72" font-family="ui-monospace,Menlo,monospace" font-size="15" font-weight="700" fill="currentColor">TOLD</text>
+          <text x="272" y="94" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".7">a named person said it</text>
+          <text x="272" y="108" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".7">still hearsay</text>
+        </g>
+
+        <!-- 3 VERIFIED -->
+        <g id="step-verified">
+          <rect x="488" y="40" width="178" height="104" fill="#FBF7ED" stroke="currentColor" stroke-width="2.4"/>
+          <text x="506" y="72" font-family="ui-monospace,Menlo,monospace" font-size="15" font-weight="700" fill="currentColor">VERIFIED</text>
+          <text x="506" y="94" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".8">a file you hold backs it</text>
+          <text x="506" y="108" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".8">contract · email · usage</text>
+        </g>
+
+        <!-- 4 CITED -->
+        <g id="step-cited">
+          <rect x="722" y="40" width="178" height="104" fill="#DCEFF4" stroke="#1C8FAF" stroke-width="2.4"/>
+          <text x="740" y="72" font-family="ui-monospace,Menlo,monospace" font-size="15" font-weight="700" fill="currentColor">CITED</text>
+          <text x="740" y="94" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".8">an id on the screen</text>
+          <text x="740" y="108" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".8">clickable, timestamped</text>
+        </g>
+
+        <!-- arrows + labels -->
+        <g id="hop-1">
+          <line x1="200" y1="92" x2="248" y2="92" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw)"/>
+          <text x="224" y="80" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">person</text>
+        </g>
+        <g id="hop-2">
+          <line x1="434" y1="92" x2="482" y2="92" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw)"/>
+          <text x="458" y="80" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">file id</text>
+        </g>
+        <g id="hop-3">
+          <line x1="668" y1="92" x2="716" y2="92" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw)"/>
+          <text x="692" y="80" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">cite</text>
+        </g>
+
+        <!-- failure notes -->
+        <g id="fail-notes" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".55">
+          <text x="20" y="176">× may simply be wrong</text>
+          <text x="254" y="176">× one person's version</text>
+          <text x="488" y="176">× may be stale by Monday</text>
+          <text x="722" y="176">× an invented id fails the audit</text>
+        </g>
+
+        <!-- bracket -->
+        <path d="M20 210 L20 224 L900 224 L900 210" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35"/>
+        <text x="460" y="252" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="10" letter-spacing="1.4" fill="currentColor" opacity=".8">NO HOP WITHOUT AN ARTEFACT — THIS IS THE GRADING RUBRIC</text>
+      </svg>
+      <div class="figcap">
+        <span class="n">Fig 1</span>
+        <p>
+          The brief's four status words are a ladder, and the rubric is the ladder. A deal's <b>worth</b> can only be a
+          number we defend because the schema shows value appearing at <code>qualified</code>. Everything below that line is
+          <b>named and bucketed</b>, not summed.
+        </p>
+      </div>
+    </figure>
+
+    <figure class="fig">
+      <svg viewBox="0 0 920 430" role="img" aria-labelledby="fig2title fig2desc">
+        <title id="fig2title">Entity map of the two accounts</title>
+        <desc id="fig2desc">An account contains people with warmth, deals with stage and worth, and paperwork records. Feature requests, release notes and Flytbase people are shared across accounts. Signals arrive live and notes are written back.</desc>
+        <defs>
+          <marker id="arw2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- ACCOUNT -->
+        <g id="ent-account">
+          <rect x="20" y="120" width="190" height="120" fill="currentColor" stroke="currentColor" stroke-width="2"/>
+          <text x="38" y="152" font-family="ui-monospace,Menlo,monospace" font-size="13" font-weight="700" fill="#FBF7ED">ACCOUNT</text>
+          <text x="38" y="174" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".8">id · name</text>
+          <text x="38" y="190" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".8">two of them</text>
+          <text x="38" y="206" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".8">+ the official story</text>
+          <text x="38" y="222" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".55">unverified by default</text>
+        </g>
+
+        <!-- connectors -->
+        <g stroke="currentColor" stroke-width="1.6" fill="none" opacity=".55">
+          <path d="M210 150 C245 150 250 66 282 66" marker-end="url(#arw2)"/>
+          <path d="M210 180 L282 180" marker-end="url(#arw2)"/>
+          <path d="M210 214 C245 214 250 296 282 296" marker-end="url(#arw2)"/>
+        </g>
+
+        <!-- PEOPLE -->
+        <g id="ent-people">
+          <rect x="284" y="24" width="336" height="92" fill="#FBF7ED" stroke="currentColor" stroke-width="2"/>
+          <text x="300" y="48" font-family="ui-monospace,Menlo,monospace" font-size="11.5" font-weight="700" fill="currentColor">PEOPLE</text>
+          <text x="300" y="66" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">id · name · role · warmth · what they are waiting on</text>
+          <text x="300" y="84" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".9">guarded → neutral → warm → ally</text>
+          <text x="300" y="102" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">only people you met — plus the ones flagged "never met"</text>
+        </g>
+
+        <!-- DEALS -->
+        <g id="ent-deals">
+          <rect x="284" y="134" width="336" height="92" fill="#F7E1CB" stroke="currentColor" stroke-width="2"/>
+          <text x="300" y="158" font-family="ui-monospace,Menlo,monospace" font-size="11.5" font-weight="700" fill="currentColor">DEALS</text>
+          <text x="300" y="176" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".75">id · stage · worth · owner · deadline</text>
+          <text x="300" y="194" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".95">identified → qualified → cleared → agreed</text>
+          <text x="300" y="212" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".75">worth appears only once qualified</text>
+        </g>
+
+        <!-- PAPERWORK -->
+        <g id="ent-paperwork">
+          <rect x="284" y="254" width="336" height="92" fill="#FBF7ED" stroke="currentColor" stroke-width="2"/>
+          <text x="300" y="278" font-family="ui-monospace,Menlo,monospace" font-size="11.5" font-weight="700" fill="currentColor">PAPERWORK</text>
+          <text x="300" y="296" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">path · record · file id</text>
+          <text x="300" y="314" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">calls · emails · contracts · tickets · usage</text>
+          <text x="300" y="332" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">shows symptoms — your morning explains them</text>
+        </g>
+
+        <!-- SHARED -->
+        <g id="ent-shared">
+          <rect x="672" y="24" width="228" height="116" fill="#DCEFF4" stroke="#1C8FAF" stroke-width="2"/>
+          <text x="688" y="48" font-family="ui-monospace,Menlo,monospace" font-size="9" letter-spacing="1.2" fill="currentColor" opacity=".7">SHARED ACROSS BOTH</text>
+          <text x="688" y="72" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="currentColor">feature_requests</text>
+          <text x="688" y="92" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="currentColor">release_notes</text>
+          <text x="688" y="112" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="currentColor">flytbase_people</text>
+          <text x="688" y="130" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".6">= owners for the first moves</text>
+        </g>
+
+        <!-- SIGNALS -->
+        <g id="ent-signals">
+          <rect x="672" y="168" width="228" height="76" fill="#DCEFF4" stroke="#1C8FAF" stroke-width="2" stroke-dasharray="6 4"/>
+          <text x="688" y="192" font-family="ui-monospace,Menlo,monospace" font-size="11.5" font-weight="700" fill="currentColor">SIGNALS</text>
+          <text x="688" y="210" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".75">arrive while you build</text>
+          <text x="688" y="226" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".75">oldest first · must land in the UI</text>
+        </g>
+
+        <!-- NOTES -->
+        <g id="ent-notes">
+          <rect x="672" y="268" width="228" height="78" fill="#DCEADF" stroke="#2C6647" stroke-width="2"/>
+          <text x="688" y="292" font-family="ui-monospace,Menlo,monospace" font-size="11.5" font-weight="700" fill="currentColor">NOTES</text>
+          <text x="688" y="310" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".8">write_note · task · risk · next step</text>
+          <text x="688" y="326" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".8">the only write path — and it counts</text>
+        </g>
+
+        <!-- signal arrow into store, note arrow out -->
+        <g stroke="currentColor" stroke-width="1.5" fill="none" opacity=".5">
+          <path d="M672 206 L632 206" marker-end="url(#arw2)"/>
+          <path d="M632 306 L672 306" marker-end="url(#arw2)"/>
+        </g>
+
+        <!-- footer line -->
+        <text x="20" y="392" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".55">Every box above carries an id. The dashboard's only job is to keep those ids attached to the claim.</text>
+        <line x1="20" y1="404" x2="900" y2="404" stroke="currentColor" stroke-width="1" opacity=".2"/>
+      </svg>
+      <div class="figcap">
+        <span class="n">Fig 2</span>
+        <p>
+          Seven deals, two accounts, four people met, and at least two keystone stakeholders never met. The "<b>never met</b>"
+          line is not trivia — it is the raw material for Q2 and Q5, and it is where most teams accidentally invent a person.
+        </p>
+      </div>
+    </figure>
+
+    <div class="callout">
+      <span class="k">Two numbers worth checking on first pull</span>
+      <p>
+        The morning debrief shows a book of <code>$214,249</code>, but the five deal values legible in the screenshot sum to
+        <code>$194,249</code> — a <code>$20,000</code> gap, so one line is missing from my read or the total carries a deal I cannot see.
+        That is exactly the kind of thing the CRM must resolve on ingest rather than paper over: <b>if the total and the parts disagree,
+        say so on screen.</b>
+      </p>
+      <p>
+        The same debrief reports "<b>best reply chosen 80% of the time</b>" and lists four replies that would have worked better.
+        That is a coaching dataset — the reason deals went cold. It belongs in Q3 and Q4, not in a footer.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section id="arch">
+    <div class="sechead">
+      <span class="num">6</span>
+      <h2>How it has to be built</h2>
+      <span class="note">/ one deployable, one writer, one read path</span>
+    </div>
+    <div class="secrule"></div>
+    <p class="lead">
+      The rate limit makes this a small data platform, not a frontend. Browser → our server → our store. The MCP sits behind a
+      queue that never lets two calls inside the same minute.
+    </p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 920 430" role="img" aria-labelledby="fig3title fig3desc">
+        <title id="fig3title">Architecture: browser reads our store, scheduler is the only MCP client</title>
+        <desc id="fig3desc">The judge's browser talks only to our Next server. A scheduler with a single-flight token bucket calls the MCP at most once per minute, writes immutable snapshots into SQLite, and derived tables serve the five panels.</desc>
+        <defs>
+          <marker id="arw3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- browser -->
+        <g id="node-browser">
+          <rect x="16" y="42" width="176" height="96" fill="#FBF7ED" stroke="currentColor" stroke-width="2"/>
+          <text x="32" y="68" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="currentColor">BROWSER</text>
+          <text x="32" y="88" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">private window</text>
+          <text x="32" y="104" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">no token, no MCP</text>
+          <text x="32" y="120" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="currentColor" opacity=".7">reads + writes via API</text>
+        </g>
+        <g>
+          <line x1="192" y1="90" x2="252" y2="90" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw3)"/>
+          <text x="222" y="78" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="currentColor" opacity=".6">https</text>
+        </g>
+
+        <!-- server -->
+        <g id="node-server">
+          <rect x="254" y="26" width="352" height="196" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <text x="272" y="50" font-family="ui-monospace,Menlo,monospace" font-size="10" letter-spacing="1.4" fill="currentColor" opacity=".6">NEXT SERVER — ONE PROCESS</text>
+
+          <rect x="272" y="62" width="316" height="40" fill="#DCEFF4" stroke="#1C8FAF" stroke-width="1.5"/>
+          <text x="286" y="80" font-family="ui-monospace,Menlo,monospace" font-size="9.5" font-weight="700" fill="currentColor">API routes</text>
+          <text x="286" y="94" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">read store only · never call the MCP</text>
+
+          <rect x="272" y="110" width="316" height="40" fill="#DCEADF" stroke="#2C6647" stroke-width="1.5"/>
+          <text x="286" y="128" font-family="ui-monospace,Menlo,monospace" font-size="9.5" font-weight="700" fill="currentColor">Rules engine — deterministic</text>
+          <text x="286" y="142" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">book · power · first moves · risk · gaps</text>
+
+          <rect x="272" y="158" width="316" height="48" fill="#F7E1CB" stroke="currentColor" stroke-width="1.5"/>
+          <text x="286" y="176" font-family="ui-monospace,Menlo,monospace" font-size="9.5" font-weight="700" fill="currentColor">Scheduler + single-flight bucket</text>
+          <text x="286" y="190" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".75">1 call / 60 s globally · queue · backoff · retry</text>
+        </g>
+
+        <!-- MCP -->
+        <g id="node-mcp">
+          <rect x="672" y="34" width="228" height="110" fill="#FBF7ED" stroke="currentColor" stroke-width="2"/>
+          <text x="688" y="58" font-family="ui-monospace,Menlo,monospace" font-size="9" letter-spacing="1.2" fill="currentColor" opacity=".6">EXTERNAL</text>
+          <text x="688" y="80" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="currentColor">MCP · JSON-RPC</text>
+          <text x="688" y="98" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">/api/public/mcp</text>
+          <text x="688" y="116" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">14 tools · tools/call</text>
+          <text x="688" y="132" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".7">Bearer token, server-side only</text>
+        </g>
+
+        <g>
+          <line x1="606" y1="182" x2="700" y2="182" stroke="currentColor" stroke-width="1.8"/>
+          <line x1="700" y1="182" x2="700" y2="150" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw3)"/>
+          <text x="616" y="174" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="currentColor" opacity=".6">queued call</text>
+        </g>
+
+        <!-- store -->
+        <g id="node-store">
+          <rect x="254" y="278" width="352" height="92" fill="currentColor" stroke="currentColor" stroke-width="2"/>
+          <text x="272" y="304" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#FBF7ED">SNAPSHOT STORE</text>
+          <text x="272" y="324" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".8">raw jsonb + ingested_at + tool + args</text>
+          <text x="272" y="340" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".8">derived: people · deals · facts · files · signals</text>
+          <text x="272" y="356" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#FBF7ED" opacity=".55">immutable — a change is a new version, not an update</text>
+        </g>
+
+        <!-- mcp down to store -->
+        <g>
+          <path d="M786 144 L786 324 L612 324" stroke="currentColor" stroke-width="1.8" fill="none" marker-end="url(#arw3)"/>
+          <text x="796" y="236" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".65">raw payload</text>
+          <text x="796" y="250" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="currentColor" opacity=".65">append-only</text>
+        </g>
+
+        <!-- store up to server -->
+        <g>
+          <line x1="430" y1="278" x2="430" y2="228" stroke="currentColor" stroke-width="1.8" marker-end="url(#arw3)"/>
+          <text x="440" y="256" font-family="ui-monospace,Menlo,monospace" font-size="8" fill="currentColor" opacity=".6">read</text>
+        </g>
+
+        <!-- citation loop -->
+        <g>
+          <path d="M104 138 L104 324 L246 324" stroke="#1C8FAF" stroke-width="1.8" fill="none" stroke-dasharray="5 4" marker-end="url(#arw3)"/>
+          <text x="114" y="300" font-family="ui-monospace,Menlo,monospace" font-size="8.5" fill="#1C8FAF">cite → source drawer</text>
+        </g>
+
+        <text x="16" y="408" font-family="ui-monospace,Menlo,monospace" font-size="9.5" fill="currentColor" opacity=".55">A judge clicks a number → we open the raw payload that produced it, with the tool name and the timestamp.</text>
+      </svg>
+      <div class="figcap">
+        <span class="n">Fig 3</span>
+        <p>
+          Three properties fall out of the rate limit: <b>one writer</b> (no parallel MCP calls anywhere), <b>immutable snapshots</b>
+          (so "your morning" stays checkable after the data moves), and <b>no MCP in the request path</b> (so a page load never
+          spends a call). Notes are written through the same queue and shown optimistically.
+        </p>
+      </div>
+    </figure>
+
+    <div class="legend">
+      <span><i class="swatch dash"></i> external / provisional</span>
+      <span><i class="swatch cy"></i> read path</span>
+      <span><i class="swatch gn"></i> deterministic logic</span>
+      <span><i class="swatch"></i> persisted state</span>
+    </div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section id="clock">
+    <div class="sechead">
+      <span class="num">7</span>
+      <h2>Their clock, and what ships at each stop</h2>
+      <span class="note">/ 14:00 → 03:47</span>
+    </div>
+    <div class="secrule"></div>
+
+    <div class="clock">
+      <div class="stop">
+        <div class="t">14:15</div>
+        <div class="ttl">Connect</div>
+        <p>Token into env. One <code>whoami</code> + <code>get_my_accounts</code> call that works. Dump the schema before writing any UI.</p>
+      </div>
+      <div class="stop">
+        <div class="t">14:45</div>
+        <div class="ttl">Pull &amp; read</div>
+        <p>Full snapshot: both accounts, all paperwork, feature requests, release notes, Flytbase people. Then read it — every deal, every file — before a line of layout.</p>
+      </div>
+      <div class="stop">
+        <div class="t">16:30</div>
+        <div class="ttl">Answer the five</div>
+        <p>Rules engine + the five panels. Provenance component first, so no number can exist without an id.</p>
+      </div>
+      <div class="stop">
+        <div class="t">17:15</div>
+        <div class="ttl">Keep it live</div>
+        <p>Signal ingestion, diff banner, <code>write_note</code> round-trip. This is where "stays live" is won or lost.</p>
+      </div>
+      <div class="stop hard">
+        <div class="t">03:47</div>
+        <div class="ttl">Host &amp; hand in</div>
+        <p>Deploy, private-window QA on all four links, doc, three-minute video. Hand in early — links stay editable.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section id="traps">
+    <div class="sechead">
+      <span class="num">8</span>
+      <h2>What actually loses points</h2>
+      <span class="note">/ ordered by how quietly it kills you</span>
+    </div>
+    <div class="secrule"></div>
+
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>Building the dashboard before reading the paperwork</h4>
+        <p>The five answers are already latent in the files. If we design panels first, we invent structure and then fit evidence to it — which is the definition of the weak column.</p>
+      </div>
+    </div>
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>One headline number</h4>
+        <p>"Book: $214,249" is the weak answer even if it is correct. It has to arrive split into backed / claimed / unknown, with the ids showing.</p>
+      </div>
+    </div>
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>Using up the minute on page loads</h4>
+        <p>Any design where a route calls <code>tools/call</code> will stall within an hour and look broken in the judge's window.</p>
+      </div>
+    </div>
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>Filling a missing role with a plausible name</h4>
+        <p>The brief lists the people you have never met precisely so we do not guess who decides. An unfilled power role must render as a gap.</p>
+      </div>
+    </div>
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>Treating "about to go wrong" as a colour</h4>
+        <p>Amber/red with no date is the same as everything green. Each risk needs the day it turns bad and the rule that flagged it.</p>
+      </div>
+    </div>
+    <div class="trap">
+      <span class="x">×</span>
+      <div>
+        <h4>Leaving ingestion until after the UI</h4>
+        <p>Signals arrive during the build. If the store is not append-only from day one, the first event forces a migration at 2am.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section id="handover">
+    <div class="sechead">
+      <span class="num">9</span>
+      <h2>What I need to start</h2>
+      <span class="note">/ then I build without further questions</span>
+    </div>
+    <div class="secrule"></div>
+
+    <div class="handover">
+      <h3>Handover checklist</h3>
+      <p>Four things unblock everything. The first two are blocking — I cannot make a single call without them.</p>
+      <ul class="asklist">
+        <li><span class="n">01</span><span><b>The token</b> — the <code>QUESTIONATHON_TOKEN</code> from "Show my token". It goes into a local <code>.env.local</code> only, never into the repo or the client bundle.</span></li>
+        <li><span class="n">02</span><span><b>Confirmation of the MCP address</b> — <code>https://questionathon.alhackerscollective.com/api/public/mcp</code>, JSON-RPC, streamable HTTP.</span></li>
+        <li><span class="n">03</span><span><b>Where it lives</b> — Fly.io / Railway (persistent disk, in-process scheduler) unless you say otherwise.</span></li>
+        <li><span class="n">04</span><span><b>Repo name + owner</b> — public and no sign-in, since judges read it.</span></li>
+      </ul>
+    </div>
+
+    <div style="margin-top:26px">
+      <p class="lead" style="margin-bottom:14px">
+        <strong>One real decision.</strong> The 1-call-per-minute rule kills serverless cron, so hosting is not cosmetic:
+      </p>
+      <div class="opts">
+        <div class="opt rec">
+          <span class="badge">Recommended</span>
+          <h4>Single VM · Next + SQLite + in-process scheduler</h4>
+          <div class="cost">Fly.io or Railway · one deployable · ~15 min setup</div>
+          <ul>
+            <li class="plus">One writer, so the token bucket is trivially correct</li>
+            <li class="plus">Persistent disk keeps snapshots across deploys</li>
+            <li class="plus">Cron runs every 60s with no platform limits</li>
+            <li class="minus">One more account to create than Vercel</li>
+          </ul>
+        </div>
+        <div class="opt">
+          <h4>Vercel + managed Postgres + external cron</h4>
+          <div class="cost">Vercel · Neon · GitHub Action every minute</div>
+          <ul>
+            <li class="plus">Fastest deploy and previews</li>
+            <li class="minus">Three moving parts for one queue</li>
+            <li class="minus">Hobby cron cannot run per-minute; needs an outside pinger</li>
+            <li class="minus">Cold starts make the bucket racy under load</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Read from 4 screenshots · Hand-in + Your Data + This Morning</span>
+    <span class="push">Payload is the source of truth — anything here that contradicts it, loses.</span>
+  </footer>
+</div>
+
+</body>
+</html>

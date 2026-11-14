@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>firstmate — set up and ready</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, h4, h5, h6, li, dd, blockquote, figcaption, td, th, .badge, .label) { overflow-wrap: anywhere; }
+  :where(img, svg, video, canvas, iframe) { max-width: 100%; height: auto; }
+
+  body { background:
+    radial-gradient(1200px 600px at 15% -10%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in oklab, var(--color-accent) 14%, transparent), transparent 55%),
+    var(--color-base-100); }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  .hair { border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent); }
+  .glow { box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 25%, transparent), 0 18px 60px -30px color-mix(in oklab, var(--color-primary) 60%, transparent); }
+  .kicker { letter-spacing: .16em; text-transform: uppercase; font-size: .68rem; font-weight: 700; }
+  .stepnum { width: 1.75rem; height: 1.75rem; display: grid; place-items: center; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+  .svg-label { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+  .svg-title { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; }
+  .svg-sub { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; opacity: .62; }
+  table.tight td, table.tight th { vertical-align: top; }
+  .shell { max-width: 72rem; }
+</style>
+</head>
+<body class="text-base-content antialiased">
+<main class="shell mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+
+  <!-- header -->
+  <header class="mb-10 sm:mb-14">
+    <div class="flex flex-wrap items-center gap-2 mb-5">
+      <span class="badge badge-primary badge-soft mono text-xs">firstmate</span>
+      <span class="badge badge-outline mono text-xs">agent distro</span>
+      <span class="badge badge-ghost mono text-xs">captain-ready</span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05]">
+      Installed, toolchain green,<br class="hidden sm:block" />
+      one project on deck.
+    </h1>
+    <p class="mt-4 max-w-3xl text-base sm:text-lg text-base-content/75">
+      Your <span class="mono text-base-content">README (5).md</span> describes <strong>firstmate</strong> — an agent distro where you talk to one first mate and it runs a crew of coding agents in isolated git worktrees.
+      It is now set up at <span class="mono text-primary">~/org/firstmate</span>.
+    </p>
+  </header>
+
+  <!-- answer first -->
+  <section class="card bg-base-200/60 hair glow mb-8 sm:mb-10">
+    <div class="card-body gap-5">
+      <div class="flex items-start gap-4">
+        <div class="stepnum bg-primary text-primary-content shrink-0 mono">1</div>
+        <div class="min-w-0">
+          <p class="kicker text-primary mb-1">To start working</p>
+          <p class="text-lg sm:text-xl font-semibold">Open a new terminal and run <span class="mono text-primary">fm</span></p>
+          <p class="text-sm text-base-content/70 mt-2">
+            That opens the firstmate home and starts the primary session (Claude Code) in it. Say <em>“ahoy — look at my project flytbase-hackathon and…”</em> and the first mate takes it from there.
+            <span class="mono text-xs text-base-content/60">fm cd</span> just moves you into the home.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="rounded-xl bg-base-100 hair p-4">
+          <p class="kicker text-base-content/50 mb-1">Home</p>
+          <p class="mono text-[13px] break-all">~/org/firstmate</p>
+        </div>
+        <div class="rounded-xl bg-base-100 hair p-4">
+          <p class="kicker text-base-content/50 mb-1">Primary harness</p>
+          <p class="mono text-[13px]">claude 2.1.316</p>
+        </div>
+        <div class="rounded-xl bg-base-100 hair p-4">
+          <p class="kicker text-base-content/50 mb-1">Backend</p>
+          <p class="mono text-[13px]">tmux 3.8</p>
+        </div>
+      </div>
+
+      <div class="alert alert-warning alert-soft text-sm" role="alert">
+        <span><strong>One dialog on first launch:</strong> Claude Code asks whether you trust this folder. Answer yes once — after that the session starts clean.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- flow diagram -->
+  <section class="mb-8 sm:mb-10">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <p class="kicker text-accent mb-1">The loop you just enabled</p>
+        <h2 class="text-xl sm:text-2xl font-bold">One chat, many isolated workers</h2>
+      </div>
+      <span class="badge badge-outline mono text-xs">verified design · unverified live run</span>
+    </div>
+
+    <figure class="card bg-base-200/40 hair overflow-hidden">
+      <div class="card-body p-4 sm:p-6">
+        <svg viewBox="0 0 900 400" class="w-full h-auto" role="img" aria-labelledby="flowTitle flowDesc">
+          <title id="flowTitle">Request flow from captain to first mate to crewmates to pull requests</title>
+          <desc id="flowDesc">The captain sends a request. The first mate writes a brief and spawns crewmates, each in its own git worktree. Workers push branches and open pull requests, which the captain merges.</desc>
+
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+            <linearGradient id="mateFill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.22" />
+              <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0.06" />
+            </linearGradient>
+          </defs>
+
+          <!-- captain -->
+          <g color="var(--color-primary)">
+            <rect x="300" y="18" width="300" height="54" rx="12" fill="url(#mateFill)" stroke="currentColor" stroke-opacity=".55" />
+            <text x="450" y="41" text-anchor="middle" class="svg-title" fill="currentColor">You — the captain</text>
+            <text x="450" y="59" text-anchor="middle" class="svg-sub" fill="currentColor">chat: requests, decisions, “merge it”</text>
+          </g>
+
+          <line x1="450" y1="72" x2="450" y2="108" stroke="var(--color-base-content)" stroke-opacity=".35" stroke-width="1.5" marker-end="url(#arrow)" />
+
+          <!-- firstmate -->
+          <g color="var(--color-primary)">
+            <rect x="215" y="110" width="470" height="78" rx="14" fill="url(#mateFill)" stroke="currentColor" stroke-opacity=".8" />
+            <text x="450" y="136" text-anchor="middle" class="svg-title" fill="currentColor">first mate · ~/org/firstmate</text>
+            <text x="450" y="155" text-anchor="middle" class="svg-sub" fill="currentColor">routes work · writes briefs · supervises · reports outcomes</text>
+            <text x="450" y="173" text-anchor="middle" class="svg-sub" fill="currentColor">zero-token watcher sleeps on the fleet and wakes only for real decisions</text>
+          </g>
+
+          <!-- fan out -->
+          <g stroke="var(--color-base-content)" stroke-opacity=".3" stroke-width="1.5" fill="none">
+            <path d="M330 188 L200 238" marker-end="url(#arrow)" />
+            <path d="M450 188 L450 238" marker-end="url(#arrow)" />
+            <path d="M570 188 L700 238" marker-end="url(#arrow)" />
+          </g>
+
+          <!-- crewmates -->
+          <g>
+            <rect x="95" y="242" width="210" height="72" rx="12" fill="var(--color-base-100)" stroke="var(--color-base-content)" stroke-opacity=".25" />
+            <text x="200" y="266" text-anchor="middle" class="svg-title" fill="var(--color-base-content)">crewmate 01</text>
+            <text x="200" y="284" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">own worktree · own agent</text>
+            <text x="200" y="300" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">fixes, features, audits</text>
+
+            <rect x="345" y="242" width="210" height="72" rx="12" fill="var(--color-base-100)" stroke="var(--color-base-content)" stroke-opacity=".25" />
+            <text x="450" y="266" text-anchor="middle" class="svg-title" fill="var(--color-base-content)">crewmate 02</text>
+            <text x="450" y="284" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">own worktree · own agent</text>
+            <text x="450" y="300" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">parallel, never colliding</text>
+
+            <rect x="595" y="242" width="210" height="72" rx="12" fill="var(--color-base-100)" stroke="var(--color-base-content)" stroke-opacity=".25" stroke-dasharray="4 4" />
+            <text x="700" y="266" text-anchor="middle" class="svg-title" fill="var(--color-base-content)">crewmate N</text>
+            <text x="700" y="284" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">scout → report.md</text>
+            <text x="700" y="300" text-anchor="middle" class="svg-sub" fill="var(--color-base-content)">research without shipping</text>
+          </g>
+
+          <g stroke="var(--color-accent)" stroke-opacity=".45" stroke-width="1.5" fill="none">
+            <path d="M200 316 L200 348" marker-end="url(#arrow)" />
+            <path d="M450 316 L450 348" marker-end="url(#arrow)" />
+            <path d="M700 316 L700 348" marker-end="url(#arrow)" />
+          </g>
+
+          <!-- delivery -->
+          <g color="var(--color-accent)">
+            <rect x="245" y="352" width="410" height="36" rx="10" fill="var(--color-base-100)" stroke="currentColor" stroke-opacity=".5" />
+            <text x="450" y="375" text-anchor="middle" class="svg-label" fill="currentColor">branch → PR → you merge &nbsp;·&nbsp; or local merge &nbsp;·&nbsp; or report</text>
+          </g>
+        </svg>
+
+        <figcaption class="text-xs text-base-content/60 mt-3">
+          From <span class="mono">AGENTS.md</span> §1 and the README’s “How It Works”. The first mate never edits a project itself — workers do, behind your merge authority.
+        </figcaption>
+      </div>
+    </figure>
+  </section>
+
+  <!-- what changed -->
+  <section class="mb-8 sm:mb-10">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <p class="kicker text-primary mb-1">What I changed</p>
+        <h2 class="text-xl sm:text-2xl font-bold">Six moves, all local</h2>
+      </div>
+      <span class="badge badge-success badge-soft mono text-xs">all verified</span>
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl hair bg-base-200/40">
+      <table class="table table-sm tight">
+        <thead>
+          <tr class="text-base-content/60">
+            <th class="w-10">#</th>
+            <th>Move</th>
+            <th>Result</th>
+            <th class="hidden md:table-cell">Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono text-base-content/50">01</td>
+            <td class="font-medium">Cloned the distro</td>
+            <td>Home at <span class="mono text-[12px]">~/org/firstmate</span></td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">kunchenguid/firstmate → local</td>
+          </tr>
+          <tr>
+            <td class="mono text-base-content/50">02</td>
+            <td class="font-medium">Ran bootstrap detection</td>
+            <td><span class="badge badge-success badge-xs">silent = all good</span></td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">bin/fm-bootstrap.sh → exit 0, no lines</td>
+          </tr>
+          <tr>
+            <td class="mono text-base-content/50">03</td>
+            <td class="font-medium">Smoke-tested session start</td>
+            <td>Lock, digest, supervision block all render</td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">throwaway clone · never touched your home</td>
+          </tr>
+          <tr>
+            <td class="mono text-base-content/50">04</td>
+            <td class="font-medium">Registered your project</td>
+            <td><span class="mono text-[12px]">flytbase-hackathon</span> <span class="badge badge-info badge-soft badge-xs">direct-PR</span></td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">fm-project-mode.sh → “direct-PR off”</td>
+          </tr>
+          <tr>
+            <td class="mono text-base-content/50">05</td>
+            <td class="font-medium">Seeded the empty repo</td>
+            <td><span class="mono text-[12px]">main @ 7818e85</span> + README + .gitignore</td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">pushed because spawn refuses an unborn HEAD</td>
+          </tr>
+          <tr>
+            <td class="mono text-base-content/50">06</td>
+            <td class="font-medium">Added the launcher</td>
+            <td><span class="mono text-[12px]">fm</span> in <span class="mono text-[12px]">~/.zshrc</span></td>
+            <td class="hidden md:table-cell mono text-[11.5px] text-base-content/60">zsh -ic 'type fm' resolves</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info alert-soft mt-3 text-sm" role="alert">
+      <span><strong>Heads up:</strong> I pushed an initial commit to <span class="mono">psb-001/Flytbase-Hackathon-</span> (it was empty). A firstmate worktree cannot branch from a repo with no commits — this unblocks dispatch. Only README + .gitignore were added.</span>
+    </div>
+  </section>
+
+  <!-- evidence / versions -->
+  <section class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 mb-8 sm:mb-10">
+    <div class="lg:col-span-3 card bg-base-200/40 hair">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3 mb-1">
+          <h3 class="card-title text-base">Toolchain on deck</h3>
+          <span class="badge badge-success badge-soft badge-xs mono">7/7 present</span>
+        </div>
+        <p class="text-sm text-base-content/60 mb-3">Everything firstmate gates on resolves on PATH.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">treehouse</span><span class="mono text-[11px] text-base-content/60">v2.3.0</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">no-mistakes</span><span class="mono text-[11px] text-base-content/60">v1.72.0</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">quota-axi</span><span class="mono text-[11px] text-base-content/60">0.1.55</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">tasks-axi</span><span class="mono text-[11px] text-base-content/60">0.2.6</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">gh-axi</span><span class="mono text-[11px] text-base-content/60">0.1.35</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">lavish-axi</span><span class="mono text-[11px] text-base-content/60">0.1.80</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">tmux</span><span class="mono text-[11px] text-base-content/60">3.8</span></div>
+          <div class="flex items-center justify-between gap-3 rounded-lg bg-base-100 hair px-3 py-2"><span class="mono text-[12px]">gh auth</span><span class="mono text-[11px] text-base-content/60">psb-001</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2 card bg-base-200/40 hair">
+      <div class="card-body">
+        <h3 class="card-title text-base mb-1">Fleet registry</h3>
+        <p class="text-sm text-base-content/60">The one project the first mate knows.</p>
+        <div class="rounded-xl bg-base-100 hair p-4 mt-2">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="mono text-sm">flytbase-hackathon</span>
+            <span class="badge badge-info badge-soft badge-xs mono">direct-PR</span>
+            <span class="badge badge-ghost badge-xs mono">yolo off</span>
+          </div>
+          <p class="mono text-[11px] text-base-content/55 break-all">github.com/psb-001/Flytbase-Hackathon-</p>
+          <p class="mono text-[11px] text-base-content/55">forge=none · main · 1 commit</p>
+        </div>
+        <p class="text-xs text-base-content/55 mt-3">
+          <span class="mono">direct-PR</span> = workers push a branch and open a PR; no validation pipeline. You merge by hand.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- first message -->
+  <section class="mb-8 sm:mb-10">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <p class="kicker text-accent mb-1">Your first message</p>
+        <h2 class="text-xl sm:text-2xl font-bold">Copy this into the session</h2>
+      </div>
+    </div>
+
+    <div class="card bg-base-300/50 hair">
+      <div class="card-body p-0">
+        <div class="flex items-center gap-2 px-4 py-2.5 border-b border-base-content/10">
+          <span class="badge badge-xs badge-error badge-soft mono">you</span>
+          <span class="mono text-[11px] text-base-content/50">firstmate · primary session</span>
+        </div>
+        <pre class="p-4 sm:p-5 text-[12.5px] sm:text-[13.5px] leading-relaxed overflow-x-auto mono"><code>&gt; ahoy! read projects/flytbase-hackathon, then &lt;your first task&gt;
+
+# The first mate will:
+#  1. run its session-start digest (already proven to render)
+#  2. create a worktree off main and spawn a worker in tmux
+#  3. come back with a PR link — or a report, if you asked a question</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- verified vs not -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10">
+    <div class="card bg-success/10 hair border-success/30">
+      <div class="card-body">
+        <h3 class="card-title text-base"><span class="badge badge-success badge-xs"></span>Verified here</h3>
+        <ul class="text-sm space-y-2 text-base-content/80 mt-1">
+          <li>Clone, bootstrap, and dependency detection</li>
+          <li>Full session-start digest in an isolated clone</li>
+          <li>Registry parse, mode read-back, forge detection</li>
+          <li>Project clone has a real <span class="mono">main</span> and working remote</li>
+          <li><span class="mono">fm</span> resolves in a fresh zsh</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card bg-warning/10 hair border-warning/30">
+      <div class="card-body">
+        <h3 class="card-title text-base"><span class="badge badge-warning badge-xs"></span>Not run yet — honest gaps</h3>
+        <ul class="text-sm space-y-2 text-base-content/80 mt-1">
+          <li>No Claude primary session launched (no tokens spent)</li>
+          <li>No crewmate spawned, so the tmux UI is unproven on this machine</li>
+          <li>Folder-trust dialog still pending on first launch</li>
+          <li><span class="mono">data/captain.md</span> doesn’t exist yet — the first mate writes it from your preferences</li>
+          <li>No second mates, Relay, or dispatch profiles configured</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- knobs -->
+  <section class="mb-8 sm:mb-10">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <p class="kicker text-primary mb-1">Knobs worth knowing</p>
+        <h2 class="text-xl sm:text-2xl font-bold">Change these later, in one line</h2>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div class="rounded-2xl bg-base-200/40 hair p-4">
+        <p class="mono text-[12px] text-primary mb-1">config/crew-harness</p>
+        <p class="text-sm text-base-content/75">Which harness workers run. Absent = mirrors the primary (Claude).</p>
+      </div>
+      <div class="rounded-2xl bg-base-200/40 hair p-4">
+        <p class="mono text-[12px] text-primary mb-1">config/backend</p>
+        <p class="text-sm text-base-content/75">Runtime backend. Absent = <span class="mono">tmux</span>. Herdr, Zellij, Orca, cmux, T3 also supported.</p>
+      </div>
+      <div class="rounded-2xl bg-base-200/40 hair p-4">
+        <p class="mono text-[12px] text-primary mb-1">data/projects.md</p>
+        <p class="text-sm text-base-content/75">Delivery posture per project: <span class="mono">no-mistakes</span>, <span class="mono">direct-PR</span>, <span class="mono">local-only</span>, plus <span class="mono">+yolo</span>.</p>
+      </div>
+      <div class="rounded-2xl bg-base-200/40 hair p-4">
+        <p class="mono text-[12px] text-primary mb-1">+yolo</p>
+        <p class="text-sm text-base-content/75">Off. When on, the first mate merges green in-scope work itself instead of waiting for your word.</p>
+      </div>
+    </div>
+
+    <p class="text-sm text-base-content/60 mt-3">
+      Prefer a different primary? <span class="mono text-[12px]">fm</span> runs Claude today; the same home works with Grok (<span class="mono text-[12px]">grok --trust</span>), Pi (<span class="mono text-[12px]">pi</span>), or Oh My Pi (<span class="mono text-[12px]">omp</span>) — installed here: Claude, Pi, Codex, OpenCode.
+    </p>
+  </section>
+
+  <!-- footer -->
+  <footer class="pt-6 border-t border-base-content/10 text-sm text-base-content/55">
+    <p class="mb-1">Next: run <span class="mono text-primary">fm</span>, accept the trust dialog, and give the first mate a task.</p>
+    <p class="mono text-[11px]">source of truth · ~/org/firstmate/AGENTS.md · README (5).md · docs/configuration.md</p>
+  </footer>
+</main>
+</body>
+</html>

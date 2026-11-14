@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/*
+ * Tokens lifted from the Figma UI kit (index.css) so the supplied components
+ * keep their exact vocabulary — ink / line / panel / brand — without the
+ * original file, which was never saved.
+ *
+ * Two accounts, two currencies: nothing in here encodes a business fact.
+ */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-ink: #1b2531;
+  --color-ink2: #46525f;
+  --color-mute: #6f7b88;
+  --color-faint: #a9b3bd;
+  --color-panel: #f7f9fb;
+  --color-bar: #eef2f6;
+  --color-line: #dbe2e9;
+  --color-line2: #edf1f5;
+
+  --color-brand: #4a90e2;
+  --color-brand-dark: #2b6cb0;
+  --color-brand-tint: #ebf4fd;
+  --color-brand-line: #b9d7f6;
+
+  --color-ok: #4c7a16;
+  --color-ok-tint: #f1f8e7;
+  --color-ok-line: #cfe4b2;
+
+  --color-warn: #9a6410;
+  --color-warn-tint: #fdf6e7;
+  --color-warn-line: #f0dcae;
+
+  --color-bad: #b23a2e;
+  --color-bad-tint: #fdeeec;
+  --color-bad-line: #f0c2bb;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+  }
+
+  body {
+    background: #fff;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: #cfe4fb;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c9d2db transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #c9d2db;
+    border: 3px solid #fff;
+    border-radius: 8px;
+  }
+
+  pre {
+    tab-size: 2;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes skel {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.skel {
+  background: linear-gradient(90deg, #eef2f6 25%, #f7f9fb 37%, #eef2f6 63%);
+  background-size: 400% 100%;
+  animation: skel 1.4s ease infinite;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.drawer-in {
+  animation: drawer-in 0.18s ease-out;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.rise {
+  animation: rise 0.16s ease-out;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
