@@ -342,6 +342,22 @@ async function applyReference(
   });
 }
 
+async function applyWhoami(ctx: MutationCtx, raw: unknown) {
+  if (!isObj(raw)) return;
+  for (const acc of arr(raw.new_accounts)) {
+    if (!isObj(acc)) continue;
+    const id = str(acc.id);
+    if (!id) continue;
+    const name = str(acc.name, id);
+    await upsert(ctx, "accounts", "by_externalId", id, {
+      externalId: id,
+      name,
+      updatedAt: Date.now(),
+      raw: acc,
+    });
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 export async function applyToolResult(
@@ -351,8 +367,12 @@ export async function applyToolResult(
   raw: unknown,
 ) {
   switch (tool) {
+    case "whoami":
+      await applyWhoami(ctx, raw);
+      return;
     case "get_my_accounts":
     case "get_pack":
+    case "get_new_account":
       await applyExport(ctx, raw);
       return;
     case "get_all_paperwork":

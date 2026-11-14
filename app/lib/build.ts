@@ -59,7 +59,7 @@ export function money(n: number | null, currency = ""): string {
 }
 
 const shortName = (name: string) =>
-  name.replace(/\s+(Police Alliance|Industrial Group)$/i, "").trim() || name;
+  name.replace(/\s+(Police Alliance|Industrial Group|Estates)$/i, "").trim() || name;
 
 const titleCase = (s: string | null | undefined) =>
   (s ?? "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

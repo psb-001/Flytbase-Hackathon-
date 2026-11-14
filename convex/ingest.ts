@@ -252,30 +252,65 @@ export const seedSnapshot = mutation({
 });
 
 /**
- * Public mutation — called from the UI "Pull latest data" button.
- * Enqueues fresh get_all_paperwork calls for every account.
- * The pump fires every 20s and respects the 1-call-per-minute MCP limit,
- * so the data arrives within ~2 minutes of pressing the button.
+ * Public mutation — called from the UI "Sync MCP Data" / "Pull latest data" button.
+ * Enqueues fresh calls for discovery, all accounts (including new drops like K),
+ * signals, and paperwork.
+ * The pump fires every 20s and respects the 1-call-per-minute MCP limit.
  */
 export const triggerRefresh = mutation({
   args: {},
   handler: async (ctx) => {
-    const accounts = await ctx.db.query("accounts").collect();
-    const accountIds = accounts.length > 0
-      ? accounts.map((a) => a.externalId)
-      : ["A", "B"]; // fallback to known account IDs
+    // 1. Discover player status & new drops
+    await ctx.runMutation(internal.ingest.enqueue, {
+      tool: "whoami",
+      args: {},
+      priority: 1,
+      label: "refresh:whoami",
+      force: true,
+    });
 
-    for (const accountId of accountIds) {
+    // 2. Fetch latest accounts snapshot
+    await ctx.runMutation(internal.ingest.enqueue, {
+      tool: "get_my_accounts",
+      args: {},
+      priority: 1,
+      label: "refresh:get_my_accounts",
+      force: true,
+    });
+
+    // 3. Fetch newly released account (Kestrel Estates)
+    await ctx.runMutation(internal.ingest.enqueue, {
+      tool: "get_new_account",
+      args: { account: "K" },
+      priority: 1,
+      label: "refresh:get_new_account:K",
+      force: true,
+    });
+
+    // 4. Fetch live signals
+    await ctx.runMutation(internal.ingest.enqueue, {
+      tool: "get_signals",
+      args: {},
+      priority: 1,
+      label: "refresh:signals",
+      force: true,
+    });
+
+    // 5. Fetch full paperwork for all known accounts
+    const accounts = await ctx.db.query("accounts").collect();
+    const accountIds = new Set(["A", "B", "K", ...accounts.map((a) => a.externalId)]);
+
+    for (const account of accountIds) {
       await ctx.runMutation(internal.ingest.enqueue, {
         tool: "get_all_paperwork",
-        args: { account_id: accountId },
-        priority: 1,
-        label: `refresh:${accountId}`,
-        force: true, // re-run even if we already have a result
+        args: { account },
+        priority: 2,
+        label: `refresh:paperwork:${account}`,
+        force: true,
       });
     }
 
-    return { queued: accountIds.length };
+    return { queued: accountIds.size + 4 };
   },
 });
 

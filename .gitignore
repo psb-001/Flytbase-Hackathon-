@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local mcp scratch captures
+k_account.json
+k_paperwork.json
+signals.json
+
