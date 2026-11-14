@@ -51,11 +51,16 @@ const clock = (iso: string) => {
 const daysBetween = (from: string, to: string) =>
   Math.round((Date.parse(`${to.slice(0, 10)}T00:00:00Z`) - Date.parse(`${from.slice(0, 10)}T00:00:00Z`)) / 86_400_000);
 
-/** Never a bare currency symbol: the two accounts bill in different currencies. */
-export function money(n: number | null, currency = ""): string {
+export function toDollars(str: string): string {
+  if (!str) return str;
+  return str.replace(/[£€]/g, "$").replace(/\b(GBP|EUR)\b/g, "USD");
+}
+
+/** Formats numbers as dollars ($). */
+export function money(n: number | null, _currency = ""): string {
   if (n === null) return "no number";
   const digits = n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return currency ? `${currency} ${digits}` : digits;
+  return `$${digits}`;
 }
 
 const shortName = (name: string) =>
@@ -77,7 +82,7 @@ function accountsOf(portfolio: Portfolio): Account[] {
     id: a.accountId,
     name: a.accountName,
     short: shortName(a.accountName),
-    currency: a.currency,
+    currency: "USD ($)",
   }));
 }
 
@@ -190,7 +195,7 @@ function dealsOf(answer: Answer): Deal[] {
       acct: answer.accountId,
       stage,
       worth: line.money.amount,
-      currency: line.money.currency,
+      currency: "USD ($)",
       backedBy: line.evidence
         .filter((e) => e.kind === "file" || e.kind === "record")
         .map((e) => e.id),
@@ -278,7 +283,7 @@ function offersOf(answer: Answer): Offer[] {
     title: o.title,
     status: o.status,
     amount: o.money.amount,
-    currency: o.money.currency,
+    currency: "USD ($)",
     pitchTo: o.pitchTo,
     evidence: o.evidence.map((e) => e.id),
   }));
@@ -334,7 +339,7 @@ function signalsOf(portfolio: Portfolio): Signal[] {
 
 function totalsOf(answer: Answer): Total {
   return {
-    currency: answer.currency,
+    currency: "USD ($)",
     backed: answer.book.backed.total.amount ?? 0,
     claimed: answer.book.claimed.total.amount ?? 0,
     unknownCount: answer.book.unknown.count,
@@ -487,11 +492,11 @@ export function buildData(portfolio: Portfolio): Data {
   const gapHeadline: Record<string, string> = {};
   for (const a of answers) {
     totals[a.accountId] = totalsOf(a);
-    headline[a.accountId] = a.book.headline;
-    assumptions[a.accountId] = assumptionsOf(a);
+    headline[a.accountId] = toDollars(a.book.headline);
+    assumptions[a.accountId] = assumptionsOf(a).map(toDollars);
     detectors[a.accountId] = a.risk.detectorNotes;
     powerHeadline[a.accountId] = a.power.headline;
-    riskHeadline[a.accountId] = a.risk.headline;
+    riskHeadline[a.accountId] = toDollars(a.risk.headline);
     gapHeadline[a.accountId] = a.gaps.headline;
     powerHeld[a.accountId] = a.power.powerHeldBy.map((p) => ({
       id: p.personId,
@@ -514,22 +519,22 @@ export function buildData(portfolio: Portfolio): Data {
       id: `book_${a.accountId}`,
       kind: "book",
       acct: a.accountId,
-      claim: `${b.backed.total.display} backed · ${b.claimed.total.display} claimed · ${b.unknown.count} unknown. ${b.reconciliation.note}`.trim(),
+      claim: toDollars(`${b.backed.total.display} backed · ${b.claimed.total.display} claimed · ${b.unknown.count} unknown. ${b.reconciliation.note}`).trim(),
       conf: "verified",
       payload: {
-        currency: a.currency,
+        currency: "USD ($)",
         backed: {
-          total: b.backed.total.display,
-          lines: b.backed.lines.map((l) => ({ id: l.id, money: l.money.display, stage: l.stage })),
+          total: toDollars(b.backed.total.display),
+          lines: b.backed.lines.map((l) => ({ id: l.id, money: toDollars(l.money.display), stage: l.stage })),
         },
         claimed: {
-          total: b.claimed.total.display,
-          lines: b.claimed.lines.map((l) => ({ id: l.id, money: l.money.display, stage: l.stage })),
+          total: toDollars(b.claimed.total.display),
+          lines: b.claimed.lines.map((l) => ({ id: l.id, money: toDollars(l.money.display), stage: l.stage })),
         },
         unknown: { count: b.unknown.count, lines: b.unknown.lines.map((l) => l.id) },
-        reconciliation: { sheet_total: b.reconciliation.sheetTotal?.display ?? null, note: b.reconciliation.note },
+        reconciliation: { sheet_total: b.reconciliation.sheetTotal?.display ? toDollars(b.reconciliation.sheetTotal.display) : null, note: toDollars(b.reconciliation.note) },
         checked: (["backed", "claimed", "unknown"] as const).flatMap((bucket) =>
-          linesOf(bucket).map((l) => `${bucket}: ${l.id} → ${l.money.display}`),
+          linesOf(bucket).map((l) => `${bucket}: ${l.id} → ${toDollars(l.money.display)}`),
         ),
       },
       key: "claim",
