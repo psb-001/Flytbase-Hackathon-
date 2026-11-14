@@ -251,5 +251,33 @@ export const seedSnapshot = mutation({
   },
 });
 
+/**
+ * Public mutation — called from the UI "Pull latest data" button.
+ * Enqueues fresh get_all_paperwork calls for every account.
+ * The pump fires every 20s and respects the 1-call-per-minute MCP limit,
+ * so the data arrives within ~2 minutes of pressing the button.
+ */
+export const triggerRefresh = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const accounts = await ctx.db.query("accounts").collect();
+    const accountIds = accounts.length > 0
+      ? accounts.map((a) => a.externalId)
+      : ["A", "B"]; // fallback to known account IDs
+
+    for (const accountId of accountIds) {
+      await ctx.runMutation(internal.ingest.enqueue, {
+        tool: "get_all_paperwork",
+        args: { account_id: accountId },
+        priority: 1,
+        label: `refresh:${accountId}`,
+        force: true, // re-run even if we already have a result
+      });
+    }
+
+    return { queued: accountIds.length };
+  },
+});
+
 export type QueueDoc = Doc<"queue">;
 export type QueueId = Id<"queue">;
