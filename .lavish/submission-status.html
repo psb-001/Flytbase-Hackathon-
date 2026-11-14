@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Account Quest — Submission Status</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/dist/tailwind.min.css" rel="stylesheet"/>
+<style>
+  :root {
+    --brand: #4f8ef7;
+    --ok: #22c55e;
+    --warn: #f5b942;
+    --bad: #ef4444;
+    --ink: #1a1a2e;
+    --mute: #6b7280;
+    --panel: #f8f9fb;
+    --line: #e5e7eb;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f0f4ff; }
+  .card { background: white; border-radius: 16px; border: 1px solid var(--line); }
+  .badge-ok { background: #dcfce7; color: #15803d; }
+  .badge-warn { background: #fef9c3; color: #a16207; }
+  .badge-bad { background: #fee2e2; color: #991b1b; }
+  .badge-gray { background: #f3f4f6; color: #374151; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot-ok { background: #22c55e; }
+  .dot-warn { background: #f5b942; }
+  .dot-bad { background: #ef4444; }
+  .mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; }
+  details summary { cursor: pointer; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body class="min-h-screen p-6">
+
+  <div class="max-w-4xl mx-auto space-y-5">
+
+    <!-- Header -->
+    <div class="card p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-2xl">🎯</span>
+            <h1 class="text-2xl font-bold text-gray-900">Account Quest CRM Dashboard</h1>
+          </div>
+          <p class="text-gray-500 text-sm">Questionathon / Account Quest hackathon — solo submission</p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="badge badge-warn mb-1"><span class="dot dot-warn"></span>1 step remaining</div>
+          <div class="text-xs text-gray-400">Deadline: 03:47</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card p-6">
+      <h2 class="font-semibold text-gray-800 mb-4">Submission Checklist</h2>
+      <div class="space-y-3">
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">Backend deployed to Convex prod</div>
+            <div class="text-xs text-gray-500 font-mono">agreeable-canary-351.ap-southeast-2.convex.cloud</div>
+          </div>
+          <span class="badge badge-ok">LIVE</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">Prod Convex seeded with real MCP data</div>
+            <div class="text-xs text-gray-500">2 accounts · 5 deals · 7 people · 15 facts · 2 signals · 78 sources</div>
+          </div>
+          <span class="badge badge-ok">SEEDED</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">Dev server responding at localhost:3000</div>
+            <div class="text-xs text-gray-500">Build green · tsc clean · all 5 screens render</div>
+          </div>
+          <span class="badge badge-ok">RUNNING</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">GitHub repo pushed</div>
+            <div class="text-xs text-gray-500 font-mono">github.com/psb-001/Flytbase-Hackathon-</div>
+          </div>
+          <span class="badge badge-ok">PUBLIC</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">README.md written</div>
+            <div class="text-xs text-gray-500">What it does · data flow · money rules · security · dataset</div>
+          </div>
+          <span class="badge badge-ok">DONE</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+          <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">THINKING.md written</div>
+            <div class="text-xs text-gray-500">10 decisions documented with rationale · risk log</div>
+          </div>
+          <span class="badge badge-ok">DONE</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+          <svg class="w-5 h-5 text-yellow-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">Vercel deploy (live URL)</div>
+            <div class="text-xs text-gray-500">Log in at vercel.com → Import psb-001/Flytbase-Hackathon- → set env var below</div>
+          </div>
+          <span class="badge badge-warn">DO THIS NEXT</span>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+          <svg class="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-800 text-sm">3-min video recording</div>
+            <div class="text-xs text-gray-500">Cover Q1–Q5, one citation drawer click, one note write</div>
+          </div>
+          <span class="badge badge-gray">PENDING</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Data verification -->
+    <div class="card p-6">
+      <h2 class="font-semibold text-gray-800 mb-4">Prod Data Verified ✓</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Account A — ECPA (GBP)</div>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Backed</span>
+              <span class="font-semibold text-green-700">GBP 200,000</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Claimed</span>
+              <span class="font-semibold text-amber-700">GBP 350,000</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Unknown deals</span>
+              <span class="font-semibold text-gray-600">0</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Account B — AIG (EUR)</div>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Backed</span>
+              <span class="font-semibold text-green-700">EUR 140,000</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Claimed</span>
+              <span class="font-semibold text-amber-700">EUR 0</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Unknown deals</span>
+              <span class="font-semibold text-gray-600">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <div class="text-xs text-gray-500 mb-2">Signals in prod</div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-bad"><span class="dot dot-bad"></span>champion_leaves · 17 Nov 2026</span>
+          <span class="badge badge-warn"><span class="dot dot-warn"></span>urgent_request · 18 Nov 2026 · FB-11206</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vercel env var -->
+    <div class="card p-6 border-yellow-200 bg-yellow-50">
+      <h2 class="font-semibold text-gray-800 mb-3">⚡ Vercel Deploy Instructions</h2>
+      <ol class="space-y-2 text-sm text-gray-700 list-decimal list-inside">
+        <li>Go to <a href="https://vercel.com/new" class="text-blue-600 underline">vercel.com/new</a></li>
+        <li>Import <code class="bg-white px-1 rounded">psb-001/Flytbase-Hackathon-</code></li>
+        <li>Set this environment variable:</li>
+      </ol>
+      <div class="mt-3 bg-gray-900 rounded-xl p-4 font-mono text-sm text-green-400">
+        <div class="text-gray-500 text-xs mb-1"># Environment Variable (Production)</div>
+        NEXT_PUBLIC_CONVEX_URL=https://agreeable-canary-351.ap-southeast-2.convex.cloud
+      </div>
+      <p class="text-xs text-gray-500 mt-2">⚠ Do NOT set CONVEX_DEPLOYMENT or any secret — only the public URL.</p>
+    </div>
+
+    <!-- Video script -->
+    <div class="card p-6">
+      <h2 class="font-semibold text-gray-800 mb-3">📹 3-Min Video Script</h2>
+      <div class="space-y-3">
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">0:00</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Monday screen</div>
+            <div class="text-xs text-gray-500">Show the two signal cards (champion_leaves / FB-11206). Explain what Monday does — the week's highest-risk items at a glance.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">0:30</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Account A — Q1 Book value</div>
+            <div class="text-xs text-gray-500">Show Backed/Claimed/Unknown buckets. Click a Backed citation → source drawer shows GBP 200k, tool = get_all_paperwork, raw payload visible.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">0:55</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Account A — Q2 Power map</div>
+            <div class="text-xs text-gray-500">Show Rhys Calder single-threaded. Explain the risk. Show warmth indicator.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">1:20</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Account A — Q3 Moves + Q4 Detectors</div>
+            <div class="text-xs text-gray-500">Show 3 ranked moves with owners and dates. Show 4 detectors each with a date it turns bad.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">1:50</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Account B</div>
+            <div class="text-xs text-gray-500">Briefly show EUR totals — different currency, never summed with A.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">2:10</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Write a note (live write)</div>
+            <div class="text-xs text-gray-500">Hit ⌘N → type "Follow up with Rhys before 17 Nov" → Queue note → show status flipping to sent.</div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="bg-blue-100 text-blue-700 text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shrink-0">2:40</span>
+          <div>
+            <div class="font-medium text-sm text-gray-800">Architecture summary</div>
+            <div class="text-xs text-gray-500">MCP → Convex actions → 1-call/min queue → Convex tables → React via useQuery. Token never touches the browser.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div class="card p-5">
+      <h2 class="font-semibold text-gray-800 mb-3">Submission Links</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex gap-3 items-center">
+          <span class="text-gray-500 w-20 shrink-0">Repo</span>
+          <a href="https://github.com/psb-001/Flytbase-Hackathon-" class="text-blue-600 underline font-mono text-xs">github.com/psb-001/Flytbase-Hackathon-</a>
+        </div>
+        <div class="flex gap-3 items-center">
+          <span class="text-gray-500 w-20 shrink-0">Thinking</span>
+          <a href="https://github.com/psb-001/Flytbase-Hackathon-/blob/main/THINKING.md" class="text-blue-600 underline font-mono text-xs">THINKING.md in repo</a>
+        </div>
+        <div class="flex gap-3 items-center">
+          <span class="text-gray-500 w-20 shrink-0">Live URL</span>
+          <span class="text-gray-400 italic text-xs">— deploy to Vercel first (see above)</span>
+        </div>
+        <div class="flex gap-3 items-center">
+          <span class="text-gray-500 w-20 shrink-0">Video</span>
+          <span class="text-gray-400 italic text-xs">— record once live URL is up</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

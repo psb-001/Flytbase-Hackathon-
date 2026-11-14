@@ -1,479 +1,256 @@
 "use client";
 
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from "react";
 import { ConvexProvider, ConvexReactClient, useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-
 import { buildData } from "../lib/build";
+import { hydrate, markReady, ACCOUNTS, DEALS, subscribe } from "./data";
+import { AppCtx, type AppApi, type Note, NoteComposer, PageSkeleton } from "./ui";
 import {
-  hydrate,
-  markReady,
-  ACCOUNTS,
-  DEALS,
-  GAPS,
-  MOVES,
-  PEOPLE,
-  RISKS,
-  SIGNALS,
-  SOURCES,
-  SNAPSHOTS,
-  subscribe,
-  getVersion,
-} from "./data";
-import { AppCtx, type AppApi, type Note } from "./ui";
-import { Ico } from "./icons";
-import { Drawer, Palette, Composer } from "./overlays";
-import { Monday, NotesScreen, DataScreen } from "./Monday";
-import {
-  DealScreen,
-  PersonScreen,
-  RisksScreen,
-  WhyScreen,
-  MoveScreen,
-  LinkScreen,
-  SignalsScreen,
+  Dashboard, AccountsList, AccountDetail, DealDetail,
+  ContactDetail, ActionsList, ActionDetail, RisksList, NotesList,
 } from "./screens";
-import { AccountScreen } from "./AccountScreen";
-import { PageSkeleton, FreshnessBadge, Btn } from "./ui";
 import type { Portfolio } from "../../convex/lib/dto";
 
-/* ================================================================ client = */
+/* ── Convex client ── */
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
 
-const convex = new ConvexReactClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL as string,
-);
-
-/* ================================================================ routing = */
-
-function parsePath(raw: string): { route: string; id: string; sub: string } {
-  const url = new URL(raw, "http://x");
-  const parts = url.pathname.split("/").filter(Boolean);
-  const route = parts[0] ?? "";
-  const id = parts[1] ?? url.searchParams.get("acct") ?? "";
-  const sub = parts[2] ?? "";
-  return { route, id, sub };
+/* ── Route parser ── */
+function parsePath(raw: string) {
+  const parts = raw.replace(/\?.*/, "").split("/").filter(Boolean);
+  return { route: parts[0] ?? "", id: parts[1] ?? "" };
 }
 
-/* ================================================================= nav ==== */
-
-function NavItem({
-  icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: string;
-  label: string;
-  active: boolean;
-  onClick: () => void;
+/* ── Nav item ── */
+function NavItem({ icon, label, active, onClick, badge }: {
+  icon: string; label: string; active: boolean; onClick: () => void; badge?: number;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? "page" : undefined}
-      className={`flex flex-col items-center gap-[3px] px-3 py-2 text-[11px] font-medium transition-colors ${
-        active ? "text-brand" : "text-mute hover:text-ink"
-      }`}
+    <button onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 10, width: "100%",
+      padding: "9px 14px", borderRadius: 10, border: "none", cursor: "pointer",
+      background: active ? "rgba(37,99,235,.1)" : "transparent",
+      color: active ? "var(--brand)" : "var(--ink2)",
+      fontWeight: active ? 700 : 500, fontSize: 14, textAlign: "left",
+      transition: "background .15s, color .15s",
+    }}
+    onMouseEnter={e => { if (!active) e.currentTarget.style.background = "var(--line2)"; }}
+    onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
     >
-      <span
-        className={`flex h-[28px] w-[28px] items-center justify-center rounded-full ${
-          active ? "bg-brand-tint" : ""
-        }`}
-      >
-        <Ico n={icon} size={16} />
-      </span>
-      {label}
+      <span style={{ fontSize: 17, flexShrink: 0 }}>{icon}</span>
+      <span style={{ flex: 1 }}>{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span style={{
+          background: "var(--bad)", color: "#fff", borderRadius: 999,
+          padding: "1px 7px", fontSize: 11, fontWeight: 700, minWidth: 20, textAlign: "center",
+        }}>{badge}</span>
+      )}
     </button>
   );
 }
 
-function Sidebar({ path, go }: { path: string; go: (p: string) => void }) {
-  const { route } = parsePath(path);
-  const isActive = (r: string) => route === r || (r === "" && route === "");
-  return (
-    <nav
-      className="flex h-full flex-col items-center gap-1 border-r border-line bg-panel py-4"
-      aria-label="Main navigation"
-    >
-      <NavItem icon="home" label="Monday" active={isActive("")} onClick={() => go("/")} />
-      {ACCOUNTS.map((a) => (
-        <NavItem
-          key={a.id}
-          icon="users"
-          label={a.short}
-          active={route === "a" && parsePath(path).id === a.id}
-          onClick={() => go(`/a/${a.id}`)}
-        />
-      ))}
-      <NavItem icon="alert" label="Risks" active={route === "risks"} onClick={() => go("/risks")} />
-      <NavItem icon="signal" label="Signals" active={route === "signals"} onClick={() => go("/signals")} />
-      <div className="mt-auto space-y-1">
-        <NavItem icon="note" label="Notes" active={route === "notes"} onClick={() => go("/notes")} />
-        <NavItem icon="file" label="Data" active={route === "data"} onClick={() => go("/data")} />
-      </div>
-    </nav>
-  );
-}
-
-/* ================================================================== App === */
-
+/* ── Shell ── */
 function AppShell() {
-  /* ---- routing ---- */
+  /* routing */
   const [path, setPath] = useState(
-    typeof window !== "undefined" ? window.location.pathname + window.location.search : "/",
+    typeof window !== "undefined" ? window.location.pathname : "/"
   );
-
-  const go = useCallback((next: string, opts?: { anchor?: string }) => {
-    const dest = opts?.anchor ? `${next}#${opts.anchor}` : next;
-    window.history.pushState(null, "", dest);
+  const go = useCallback((next: string) => {
+    window.history.pushState(null, "", next);
     setPath(next);
-    if (opts?.anchor) {
-      setTimeout(() => {
-        document.getElementById(opts.anchor!)?.scrollIntoView({ behavior: "smooth" });
-      }, 80);
-    } else {
-      window.scrollTo({ top: 0 });
-    }
+    window.scrollTo({ top: 0 });
   }, []);
-
   useEffect(() => {
-    const onPop = () =>
-      setPath(window.location.pathname + window.location.search);
+    const onPop = () => setPath(window.location.pathname);
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  /* ---- data ---- */
+  /* data */
   const portfolio = useQuery(api.queries.portfolio);
   const [ready, setReady] = useState(false);
-  const [ver, setVer] = useState(0);
-
   useEffect(() => {
     if (!portfolio) return;
     hydrate(buildData(portfolio as unknown as Portfolio));
     markReady();
     setReady(true);
-    setVer((v) => v + 1);
   }, [portfolio]);
+  useEffect(() => subscribe(() => setReady(r => { return r; })), []);
 
-  /* also subscribe to in-module changes (e.g. another tab's hydration) */
-  useEffect(() => subscribe(() => setVer((v) => v + 1)), []);
-
-  /* ---- overlays ---- */
-  const [drawer, setDrawer] = useState<string | null>(null);
-  const [composer, setComposer] = useState<{
-    kind?: string;
-    attach?: string;
-    text?: string;
-  } | null>(null);
-  const [palette, setPalette] = useState<string | null>(null);
-
-  /* ---- notes ---- */
+  /* notes */
   const rawNotes = useQuery(api.queries.notes, {});
   const addNoteMut = useMutation(api.notes.addNote);
   const [localNotes, setLocalNotes] = useState<Note[]>([]);
-  const [noteRead, setNoteRead] = useState<Set<string>>(new Set());
 
   const notes: Note[] = useMemo(() => {
-    const remote: Note[] = (rawNotes ?? []).map((n) => ({
-      id: n._id,
-      kind: n.kind,
-      attach: n.accountId ?? n.dealId ?? "Account",
-      text: n.text,
-      at: new Date(n.at).toLocaleString(),
-      status: n.status,
+    const remote: Note[] = (rawNotes ?? []).map(n => ({
+      id: n._id, kind: n.kind, attach: n.accountId ?? n.dealId ?? "",
+      text: n.text, at: new Date(n.at).toLocaleString(), status: n.status,
     }));
-    return [...remote, ...localNotes.filter((l) => !remote.some((r) => r.id === l.id))];
+    return [...remote, ...localNotes.filter(l => !remote.some(r => r.id === l.id))];
   }, [rawNotes, localNotes]);
 
-  const addNote = useCallback(
-    async (n: Omit<Note, "id" | "at">) => {
-      /* resolve attach to accountId / dealId */
-      let accountId = "A";
-      let dealId: string | undefined;
-      if (n.attach?.startsWith("acct:")) {
-        accountId = n.attach.slice(5);
-      } else if (n.attach?.startsWith("d:")) {
-        const did = n.attach.slice(2);
-        dealId = did;
-        accountId = DEALS.find((d) => d.id === did)?.acct ?? "A";
-      } else {
-        accountId = n.attach ?? "A";
-      }
+  const addNote = useCallback(async (n: Omit<Note, "id" | "at">) => {
+    let accountId = "A";
+    let dealId: string | undefined;
+    if (n.attach?.startsWith("acct:")) accountId = n.attach.slice(5);
+    else if (n.attach?.startsWith("d:")) {
+      dealId = n.attach.slice(2);
+      accountId = DEALS.find(d => d.id === dealId)?.acct ?? "A";
+    }
+    const kind = (n.kind === "task" ? "task" : n.kind === "risk" ? "risk" : n.kind === "next_step" ? "next_step" : "note") as "note" | "task" | "risk" | "next_step";
+    const tmp: Note = { id: `local_${Date.now()}`, kind: n.kind, attach: n.attach ?? "", text: n.text, at: new Date().toLocaleString(), status: "queued" };
+    setLocalNotes(prev => [tmp, ...prev]);
+    await addNoteMut({ accountId, dealId, kind, text: n.text });
+  }, [addNoteMut]);
 
-      const kind = (
-        n.kind === "Note" ? "note"
-        : n.kind === "Task" ? "task"
-        : n.kind === "Risk" ? "risk"
-        : "next_step"
-      ) as "note" | "task" | "risk" | "next_step";
+  /* composer */
+  const [composer, setComposer] = useState<{ kind?: string; attach?: string; text?: string } | null>(null);
 
-      const tmp: Note = {
-        id: `local_${Date.now()}`,
-        kind: n.kind,
-        attach: n.attach ?? "Account",
-        text: n.text,
-        at: new Date().toLocaleString(),
-        status: "queued",
-      };
-      setLocalNotes((prev) => [tmp, ...prev]);
+  /* read */
+  const [read, setRead] = useState<Set<string>>(new Set());
+  const markRead = useCallback((id: string) => setRead(s => new Set([...s, id])), []);
+  const copy = useCallback((t: string) => { navigator.clipboard?.writeText(t).catch(() => {}); }, []);
 
-      await addNoteMut({ accountId, dealId, kind, text: n.text });
-    },
-    [addNoteMut],
-  );
-
-  /* ---- read tracking ---- */
-  const markRead = useCallback(
-    (id: string) => setNoteRead((s) => new Set([...s, id])),
-    [],
-  );
-
-  /* ---- copy ---- */
-  const copy = useCallback((t: string) => {
-    navigator.clipboard?.writeText(t).catch(() => void 0);
-  }, []);
-
-  /* ---- countdown (shows time until next MCP pump, ~20s cycle) ---- */
-  const [countdown, setCountdown] = useState(20);
-  useEffect(() => {
-    const id = setInterval(() => setCountdown((c) => (c <= 1 ? 20 : c - 1)), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  /* ---- keyboard shortcuts ---- */
+  /* keyboard shortcut */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setPalette("");
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
-        e.preventDefault();
-        setComposer({});
-      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "n") { e.preventDefault(); setComposer({}); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /* ---- palette actions ---- */
-  const paletteActions = useMemo(() => {
-    const a = [
-      { key: "monday", label: "Monday", icon: "home", action: () => go("/"), group: "Pages" },
-      { key: "risks", label: "All risks", icon: "alert", action: () => go("/risks"), group: "Pages" },
-      { key: "signals", label: "Signals", icon: "signal", action: () => go("/signals"), group: "Pages" },
-      { key: "notes", label: "Notes", icon: "note", action: () => go("/notes"), group: "Pages" },
-      { key: "data", label: "Data & sources", icon: "file", action: () => go("/data"), group: "Pages" },
-    ];
-    for (const acc of ACCOUNTS) {
-      a.push({
-        key: `a-${acc.id}`,
-        label: acc.name,
-        icon: "users",
-        action: () => go(`/a/${acc.id}`),
-        group: "Accounts",
-      });
-    }
-    for (const d of DEALS) {
-      a.push({
-        key: `d-${d.id}`,
-        label: d.name,
-        icon: "target",
-        action: () => go(`/d/${d.id}`),
-        group: "Deals",
-      });
-    }
-    for (const p of PEOPLE) {
-      a.push({
-        key: `p-${p.id}`,
-        label: p.name,
-        icon: "user",
-        action: () => go(`/p/${p.id}`),
-        group: "People",
-      });
-    }
-    for (const m of MOVES) {
-      a.push({
-        key: `m-${m.id}`,
-        label: `Move ${m.g} · ${m.action.slice(0, 60)}`,
-        icon: "bolt",
-        action: () => go(`/m/${m.id}`),
-        group: "Moves",
-      });
-    }
-    return a;
-  }, [go, ver]); // eslint-disable-line react-hooks/exhaustive-deps
+  const appApi: AppApi = useMemo(() => ({
+    go, openComposer: (p) => setComposer(p ?? {}), copy,
+    notes, addNote, read, markRead,
+  }), [go, copy, notes, addNote, read, markRead]);
 
-  /* ---- API context ---- */
-  const appApi: AppApi & { ingest: Portfolio["ingest"] } = useMemo(
-    () => ({
-      openSource: (id) => setDrawer(id),
-      openComposer: (p) => setComposer(p ?? {}),
-      openPalette: (q) => setPalette(q ?? ""),
-      go,
-      copy,
-      notes,
-      addNote,
-      read: noteRead,
-      markRead,
-      countdown,
-      ingest: (portfolio as unknown as Portfolio)?.ingest ?? [],
-    }),
-    [go, copy, notes, addNote, noteRead, markRead, countdown, portfolio, ver], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
-  /* ---- render page ---- */
-  const { route, id, sub } = parsePath(path);
+  /* page render */
+  const { route, id } = parsePath(path);
 
   function page() {
     if (!ready) return <PageSkeleton />;
     switch (route) {
-      case "":
-        return <Monday />;
-      case "a":
-        return <AccountScreen id={id} />;
-      case "d":
-        return <DealScreen id={id} />;
-      case "p":
-        return <PersonScreen id={id} />;
-      case "m":
-        return <MoveScreen id={id} />;
-      case "risks":
-        return <RisksScreen lane={id} />;
-      case "why":
-        return <WhyScreen acct={id} />;
-      case "signals":
-        return id ? <LinkScreen id={id} /> : <SignalsScreen />;
-      case "notes":
-        return <NotesScreen />;
-      case "data":
-        return <DataScreen />;
-      default:
-        return (
-          <div className="py-20 text-center">
-            <h1 className="text-[26px] font-light">Page not found</h1>
-            <Btn className="mt-4" onClick={() => go("/")}>
-              Return to Monday
-            </Btn>
-          </div>
-        );
+      case "":        return <Dashboard />;
+      case "accounts":return <AccountsList />;
+      case "a":       return <AccountDetail id={id} />;
+      case "d":       return <DealDetail id={id} />;
+      case "p":       return <ContactDetail id={id} />;
+      case "m":       return <ActionDetail id={id} />;
+      case "actions": return <ActionsList />;
+      case "risks":   return <RisksList />;
+      case "notes":   return <NotesList />;
+      default:        return (
+        <div style={{ padding: 60, textAlign: "center", color: "var(--mute)" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
+          <div style={{ fontSize: 18, fontWeight: 600 }}>Page not found</div>
+          <button onClick={() => go("/")} style={{ marginTop: 16, padding: "8px 20px", borderRadius: 8, background: "var(--brand)", color: "#fff", border: "none", cursor: "pointer" }}>Go home</button>
+        </div>
+      );
     }
   }
 
+  const highRisks = ready ? (ACCOUNTS.length > 0 ? 2 : 0) : 0; // will re-render on hydrate
+
   return (
-    <AppCtx.Provider value={appApi as AppApi}>
-      <div className="flex h-screen flex-col overflow-hidden">
-        {/* top bar */}
-        <header className="flex shrink-0 items-center justify-between border-b border-line bg-white px-4 py-2.5 sm:px-6">
-          <button
-            type="button"
-            onClick={() => go("/")}
-            className="flex items-center gap-2 font-medium text-ink hover:text-brand"
-          >
-            <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-brand text-white">
-              <Ico n="target" size={16} />
-            </span>
-            <span className="hidden sm:block">Account Quest</span>
-          </button>
+    <AppCtx.Provider value={appApi}>
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "inherit" }}>
 
-          <div className="flex items-center gap-3">
-            <FreshnessBadge
-              state={portfolio ? "live" : "stale"}
-              text={portfolio ? "live" : "connecting…"}
-            />
-            <span className="hidden text-[12px] text-mute sm:block">
-              {countdown}s
-            </span>
-            {SNAPSHOTS[0] && (
-              <span className="hidden text-[12px] text-mute sm:block">
-                · snap {SNAPSHOTS[0].time}
-              </span>
+        {/* ── Sidebar ── */}
+        <aside style={{
+          width: 220, flexShrink: 0, background: "var(--white)",
+          borderRight: "1px solid var(--line)", display: "flex", flexDirection: "column",
+          overflowY: "auto",
+        }}>
+          {/* logo */}
+          <div style={{ padding: "20px 18px 16px", borderBottom: "1px solid var(--line)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 10, background: "var(--brand)",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+              }}>🎯</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: "var(--ink)" }}>SalesCRM</div>
+                <div style={{ fontSize: 11, color: "var(--faint)" }}>FlytBase</div>
+              </div>
+            </div>
+          </div>
+
+          {/* nav */}
+          <nav style={{ padding: "12px 10px", flex: 1 }}>
+            <NavItem icon="🏠" label="Dashboard"  active={route === "" && path === "/"} onClick={() => go("/")} />
+            <NavItem icon="🏢" label="Accounts"   active={route === "accounts" || route === "a"} onClick={() => go("/accounts")} />
+            <NavItem icon="✅" label="Actions"    active={route === "actions" || route === "m"} onClick={() => go("/actions")} />
+            <NavItem icon="⚠️" label="Risks"      active={route === "risks"} onClick={() => go("/risks")} />
+            <NavItem icon="📝" label="Notes"      active={route === "notes"} onClick={() => go("/notes")} badge={notes.filter(n => n.status === "queued").length} />
+
+            {/* accounts quick-jump */}
+            {ready && ACCOUNTS.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ padding: "4px 14px", fontSize: 10, fontWeight: 700, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".08em" }}>Accounts</div>
+                {ACCOUNTS.map(a => (
+                  <NavItem key={a.id} icon={a.id === "A" ? "🔵" : "🟣"} label={a.short ?? a.name}
+                    active={route === "a" && id === a.id} onClick={() => go(`/a/${a.id}`)} />
+                ))}
+              </div>
             )}
-          </div>
+          </nav>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPalette("")}
-              aria-label="Quick navigation (⌘K)"
-              className="flex h-[32px] items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[12.5px] text-ink2 hover:bg-panel"
-            >
-              <Ico n="search" size={14} />
-              <span className="hidden sm:block">Go to…</span>
-              <kbd className="hidden rounded-[4px] border border-line bg-bar px-1 py-[1px] font-mono text-[10px] text-mute sm:block">
-                ⌘K
-              </kbd>
-            </button>
-            <button
-              type="button"
-              onClick={() => setComposer({})}
-              aria-label="Write a note (⌘N)"
-              className="flex h-[32px] w-[32px] items-center justify-center rounded-full border border-brand bg-brand text-white hover:bg-[#3f84d6]"
-            >
-              <Ico n="plus" size={16} />
+          {/* add note button */}
+          <div style={{ padding: "12px 10px", borderTop: "1px solid var(--line)" }}>
+            <button onClick={() => setComposer({})} style={{
+              width: "100%", padding: "9px 14px", borderRadius: 10, border: "1px solid var(--brand)",
+              background: "var(--brand)", color: "#fff", cursor: "pointer",
+              fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}>
+              <span>+</span> Add Note
             </button>
           </div>
-        </header>
+        </aside>
 
-        {/* body */}
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          {/* sidebar */}
-          <div className="hidden w-[72px] shrink-0 overflow-y-auto sm:block">
-            <Sidebar path={path} go={go} />
-          </div>
+        {/* ── Main ── */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {/* topbar */}
+          <header style={{
+            padding: "12px 28px", borderBottom: "1px solid var(--line)",
+            background: "var(--white)", display: "flex", alignItems: "center",
+            justifyContent: "space-between", flexShrink: 0,
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink2)" }}>
+              {route === "" ? "Dashboard"
+                : route === "accounts" ? "Accounts"
+                : route === "a" ? (ACCOUNTS.find(a => a.id === id)?.name ?? "Account")
+                : route === "d" ? "Deal"
+                : route === "p" ? "Contact"
+                : route === "m" ? "Action"
+                : route === "actions" ? "Actions"
+                : route === "risks" ? "Risks"
+                : route === "notes" ? "Notes"
+                : ""}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: portfolio ? "var(--ok)" : "var(--warn)" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: portfolio ? "var(--ok)" : "var(--warn)", display: "inline-block" }} />
+                {portfolio ? "Live" : "Connecting…"}
+              </div>
+            </div>
+          </header>
 
-          {/* main */}
-          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
+          {/* content */}
+          <main style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
             {page()}
           </main>
         </div>
-
-        {/* mobile bottom nav */}
-        <nav className="flex shrink-0 border-t border-line bg-white sm:hidden" aria-label="Mobile navigation">
-          {[
-            { icon: "home", label: "Monday", path: "/" },
-            { icon: "users", label: "Accounts", path: "/a/A" },
-            { icon: "alert", label: "Risks", path: "/risks" },
-            { icon: "signal", label: "Signals", path: "/signals" },
-            { icon: "note", label: "Notes", path: "/notes" },
-          ].map((item) => (
-            <NavItem
-              key={item.path}
-              icon={item.icon}
-              label={item.label}
-              active={path === item.path || (item.path !== "/" && path.startsWith(item.path))}
-              onClick={() => go(item.path)}
-            />
-          ))}
-        </nav>
       </div>
 
-      {/* overlays */}
-      {drawer && <Drawer id={drawer} onClose={() => setDrawer(null)} />}
-      {palette !== null && (
-        <Palette
-          query={palette}
-          actions={paletteActions}
-          onClose={() => setPalette(null)}
-        />
-      )}
-      {composer && <Composer preset={composer} onClose={() => setComposer(null)} />}
+      {/* note composer overlay */}
+      {composer && <NoteComposer preset={composer} onClose={() => setComposer(null)} />}
     </AppCtx.Provider>
   );
 }
-
-/* ================================================================ export == */
 
 export default function App() {
   return (
