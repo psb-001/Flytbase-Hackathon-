@@ -1,156 +1,116 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-
-  --color-ink: #1b2531;
-  --color-ink2: #46525f;
-  --color-mute: #6f7b88;
-  --color-faint: #a9b3bd;
-  --color-panel: #f7f9fb;
-  --color-bar: #eef2f6;
-  --color-line: #dbe2e9;
-  --color-line2: #edf1f5;
-
-  --color-brand: #4a90e2;
-  --color-brand-dark: #2b6cb0;
-  --color-brand-tint: #ebf4fd;
-  --color-brand-line: #b9d7f6;
-
-  --color-ok: #4c7a16;
-  --color-ok-tint: #f1f8e7;
-  --color-ok-line: #cfe4b2;
-
-  --color-warn: #9a6410;
-  --color-warn-tint: #fdf6e7;
-  --color-warn-line: #f0dcae;
-
-  --color-bad: #b23a2e;
-  --color-bad-tint: #fdeeec;
-  --color-bad-line: #f0c2bb;
-}
-
+/* ── Design tokens ── */
 :root {
-  --ink: #1b2531;
-  --ink2: #46525f;
-  --mute: #6f7b88;
-  --faint: #a9b3bd;
-  --panel: #f7f9fb;
-  --bar: #eef2f6;
-  --line: #dbe2e9;
-  --line2: #edf1f5;
+  --brand:      #4f8ef7;
+  --brand-dark: #3366cc;
+  --brand-tint: #eff6ff;
+  --brand-mid:  #bfdbfe;
 
-  --brand: #4a90e2;
-  --brand-dark: #2b6cb0;
-  --brand-tint: #ebf4fd;
-  --brand-line: #b9d7f6;
+  --ok:         #22c55e;
+  --ok-tint:    #f0fdf4;
+  --warn:       #f59e0b;
+  --warn-tint:  #fffbeb;
+  --bad:        #ef4444;
+  --bad-tint:   #fef2f2;
 
-  --ok: #4c7a16;
-  --ok-tint: #f1f8e7;
-  --ok-line: #cfe4b2;
+  --ink:        #111827;
+  --ink2:       #374151;
+  --mute:       #6b7280;
+  --faint:      #9ca3af;
 
-  --warn: #9a6410;
-  --warn-tint: #fdf6e7;
-  --warn-line: #f0dcae;
-
-  --bad: #b23a2e;
-  --bad-tint: #fdeeec;
-  --bad-line: #f0c2bb;
+  --line:       #e5e7eb;
+  --line2:      #f3f4f6;
+  --panel:      #f8fafc;
+  --bar:        #f1f5f9;
+  --white:      #ffffff;
 }
 
-@layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    scroll-behavior: smooth;
-    scroll-padding-top: 88px;
-  }
-
-  body {
-    background: #fff;
-    color: var(--color-ink);
-    font-family: var(--font-sans);
-    font-size: 14.5px;
-    line-height: 1.45;
-  }
-
-  button {
-    cursor: pointer;
-  }
-
-  button:disabled {
-    cursor: default;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--color-brand);
-    outline-offset: 2px;
-    border-radius: 6px;
-  }
-
-  ::selection {
-    background: #cfe4fb;
-  }
-
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #c9d2db transparent;
-  }
-
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background: #c9d2db;
-    border: 2px solid #fff;
-    border-radius: 8px;
-  }
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  background: var(--panel);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
 }
+button, input, select, textarea { font: inherit; }
 
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--faint); }
 
-@keyframes skel {
-  0% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
-}
-
-.skel {
-  background: linear-gradient(90deg, #eef2f6 25%, #f7f9fb 37%, #eef2f6 63%);
-  background-size: 400% 100%;
-  animation: skel 1.4s ease infinite;
-  border-radius: 12px;
-}
-
+/* ── Animations ── */
 @keyframes drawer-in {
-  from { transform: translateX(24px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes fade-up {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.drawer-in { animation: drawer-in .22s cubic-bezier(.22,1,.36,1); }
+.fade-up   { animation: fade-up   .18s ease; }
+
+/* ── Skeleton loader ── */
+.skel {
+  background: linear-gradient(90deg, var(--line2) 25%, #fff 50%, var(--line2) 75%);
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.4s infinite;
+  border-radius: 10px;
+}
+@keyframes skel-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
 }
 
-.drawer-in { animation: drawer-in 0.18s ease-out; }
-
-@keyframes rise {
-  from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
 }
+.card-sm { border-radius: 12px; }
 
-.rise { animation: rise 0.16s ease-out; }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* ── Tags / chips ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
 }
+.tag-blue   { background: var(--brand-tint); color: var(--brand-dark); }
+.tag-green  { background: var(--ok-tint);    color: #15803d; }
+.tag-amber  { background: var(--warn-tint);  color: #92400e; }
+.tag-red    { background: var(--bad-tint);   color: #991b1b; }
+.tag-gray   { background: var(--line2);      color: var(--mute); }
+.tag-purple { background: #f5f3ff;           color: #6d28d9; }
 
+/* ── Spinner ── */
 .spinner {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 14px; height: 14px;
   border: 2px solid var(--line);
   border-top-color: var(--brand);
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin .6s linear infinite;
+}
+
+/* ── Live dot ── */
+.live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
 }

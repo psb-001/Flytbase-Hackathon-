@@ -1,297 +1,344 @@
 "use client";
-
 import { useState, type ReactNode } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
-  ACCOUNTS,
-  DEALS,
-  PEOPLE,
-  MOVES,
-  RISKS,
-  GAPS,
-  TOTALS,
-  SIGNALS,
-  money,
-  coverage,
-  deal as getDeal,
-  acctName,
-  type Deal,
-  type Person,
-  type Move,
-  type Risk,
-  type Gap,
-  type Signal,
+  ACCOUNTS, DEALS, PEOPLE, MOVES, RISKS, GAPS, TOTALS, OFFERS,
+  SIGNALS, money,
+  type Deal, type Person, type Move, type Risk, type Gap, type Signal, type Offer,
 } from "./data";
 import {
-  Avatar,
-  Btn,
-  Chip,
-  Cite,
-  ConfidenceChip,
-  EmptyState,
-  Evidence,
-  GapRow,
-  IdChip,
-  Label,
-  MoveCard,
-  PersonChip,
-  RiskRow,
-  RoleSlot,
-  Section,
-  SignalRow,
-  SourceChip,
-  StageChip,
-  WarmthChip,
-  useApp,
+  Avatar, Tag, StageBadge, WarmthBadge, ValueBadge, SevBadge,
+  Btn, EmptyState, Section, useApp,
 } from "./ui";
-import { Ico } from "./icons";
 
-/* ═════════════════════════════════════════════════════════════════════════
-   SYNC / PULL BUTTON (Connected to MCP Queue)
-   ═════════════════════════════════════════════════════════════════════════ */
+/* ══════ PULL BUTTON ══════════════════════════════════════════════════ */
 
-export function SyncButton() {
+export function PullButton() {
   const triggerRefresh = useMutation(api.ingest.triggerRefresh);
-  const ingestStatus = useQuery(api.ingest.status);
-  const [syncing, setSyncing] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const ingestStatus   = useQuery(api.ingest.status);
+  const [state, setState] = useState<"idle" | "queued" | "done">("idle");
 
-  const isLive = (ingestStatus?.running ?? 0) > 0;
-  const queuedCount = ingestStatus?.queued ?? 0;
-  const nextInSec = Math.ceil((ingestStatus?.nextInMs ?? 0) / 1000);
+  const isLive   = (ingestStatus?.running ?? 0) > 0;
+  const hasQueue = (ingestStatus?.queued  ?? 0) > 0;
 
   const pull = async () => {
-    try {
-      setSyncing(true);
-      const res = await triggerRefresh({});
-      setFeedback(`Queued ${res.queued} MCP calls`);
-      setTimeout(() => setFeedback(null), 4000);
-    } catch (e) {
-      console.error(e);
-      setFeedback("Failed to queue");
-      setTimeout(() => setFeedback(null), 3000);
-    } finally {
-      setTimeout(() => setSyncing(false), 2000);
-    }
+    setState("queued");
+    await triggerRefresh({});
+    // Reset after 4s — the pump runs every 20s, so it will pick it up fast
+    setTimeout(() => setState("done"), 4000);
+    setTimeout(() => setState("idle"), 8000);
   };
 
   return (
-    <div className="flex items-center gap-2.5">
-      {/* Live queue indicator */}
-      {queuedCount > 0 ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-warn-line bg-warn-tint px-2.5 py-1 text-[11.5px] font-semibold text-warn">
-          <span className="spinner" style={{ width: 10, height: 10, borderTopColor: "#9a6410" }} />
-          {queuedCount} in queue
-        </span>
-      ) : isLive ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-line bg-brand-tint px-2.5 py-1 text-[11.5px] font-semibold text-brand-dark">
-          <span className="spinner" style={{ width: 10, height: 10 }} />
-          MCP calling…
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ok">
-          <span className="h-2 w-2 rounded-full bg-ok" style={{ animation: "pulse-dot 1.8s infinite" }} />
-          Live
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {/* queue indicator */}
+      {(hasQueue || isLive) && (
+        <span className="tag tag-amber" style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span className="spinner" style={{ width: 10, height: 10, borderTopColor: "#92400e", borderColor: "#fde68a" }} />
+          {isLive ? "Pulling…" : `${ingestStatus?.queued} queued`}
         </span>
       )}
 
-      {/* Sync Button */}
       <button
-        type="button"
         onClick={pull}
-        disabled={syncing || isLive}
-        title={nextInSec > 0 ? `Next MCP call window in ${nextInSec}s` : "Pull latest accounts, paperwork, and signals"}
-        className="inline-flex items-center gap-1.5 rounded-full border border-brand-line bg-brand-tint px-3 py-1 text-[12.5px] font-semibold text-brand-dark transition-all hover:bg-brand-line/40 hover:text-brand-dark disabled:opacity-60 shadow-xs"
+        disabled={state === "queued" || isLive}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 7,
+          padding: "7px 14px", borderRadius: 10,
+          border: "1px solid var(--brand-mid)",
+          background: state === "done" ? "var(--ok-tint)" : "var(--brand-tint)",
+          color: state === "done" ? "#15803d" : "var(--brand-dark)",
+          fontWeight: 600, fontSize: 13, cursor: state === "queued" ? "default" : "pointer",
+          opacity: state === "queued" ? .7 : 1,
+          transition: "all .2s",
+        }}
       >
-        <Ico n="refresh" size={13} className={syncing || isLive ? "animate-spin" : ""} />
-        <span>{feedback ?? (syncing ? "Queueing…" : "↻ Sync MCP Data")}</span>
+        {state === "queued" ? (
+          <><span className="spinner" style={{ width: 12, height: 12 }} />Queuing…</>
+        ) : state === "done" ? (
+          <>✓ Queued — arrives in ~1 min</>
+        ) : (
+          <>↻ Pull latest data</>
+        )}
       </button>
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   DASHBOARD
-   ═════════════════════════════════════════════════════════════════════════ */
-
-export function Dashboard() {
-  const { go } = useApp();
-
-  const totalDeals = DEALS.length;
-  const highRisks = RISKS.filter((r) => r.sev === "high").length;
-  const totalMoves = MOVES.length;
+/* ══════ DEAL CARD ═══════════════════════════════════════════════════ */
+export function DealCard({ d, compact = false }: { d: Deal; compact?: boolean }) {
+  const { go, openComposer } = useApp();
+  const contacts = PEOPLE.filter(p => d.roles && Object.values(d.roles).some(r => r?.person === p.id));
 
   return (
-    <div className="space-y-8 max-w-[1100px] mx-auto">
-      {/* ── KPI Strip ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        {[
-          { label: "Active Accounts", value: ACCOUNTS.length, icon: "users", tone: "blue" },
-          { label: "Pipeline Deals", value: totalDeals, icon: "target", tone: "green" },
-          { label: "Next Actions Due", value: totalMoves, icon: "clock", tone: "amber" },
-          { label: "High Severity Risks", value: highRisks, icon: "alert", tone: "red" },
-        ].map((k) => {
-          const colors = {
-            blue: "border-brand-line bg-brand-tint text-brand-dark",
-            green: "border-ok-line bg-ok-tint text-ok",
-            amber: "border-warn-line bg-warn-tint text-warn",
-            red: "border-bad-line bg-bad-tint text-bad",
-          }[k.tone];
-          return (
-            <div
-              key={k.label}
-              className={`rounded-[20px] border p-4.5 shadow-xs ${colors}`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11.5px] font-bold uppercase tracking-wider opacity-80">
-                  {k.label}
-                </span>
-                <Ico n={k.icon} size={16} />
-              </div>
-              <div className="text-[28px] font-black tracking-tight leading-none">
-                {k.value}
-              </div>
-            </div>
-          );
-        })}
+    <article
+      className="card"
+      onClick={() => go(`/d/${d.id}`)}
+      style={{ padding: compact ? "14px 16px" : "18px 20px", cursor: "pointer", transition: "box-shadow .15s" }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,.07)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = ""; }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: compact ? 14 : 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {d.name}
+          </div>
+          {d.deadline && (
+            <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 2 }}>📅 {d.deadline.label}</div>
+          )}
+          {d.owner && !compact && (
+            <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 1 }}>Owner: {d.owner}</div>
+          )}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end", flexShrink: 0 }}>
+          <StageBadge stage={d.stage} />
+          <ValueBadge bucket={d.bucket} />
+        </div>
       </div>
 
-      {/* ── Live Alerts & Signals ── */}
-      {SIGNALS.length > 0 && (
-        <div className="rounded-[22px] border border-bad-line bg-bad-tint/30 overflow-hidden shadow-xs">
-          <div className="flex items-center justify-between border-b border-bad-line/50 bg-bad-tint/60 px-5 py-3">
-            <div className="flex items-center gap-2 text-[13px] font-bold text-bad uppercase tracking-wider">
-              <Ico n="signal" size={15} />
-              Live Events & Signals ({SIGNALS.length})
-            </div>
-            <span className="text-[12px] text-mute font-medium">Real-time alerts</span>
-          </div>
-          <div>
-            {SIGNALS.map((s) => (
-              <SignalRow key={s.id} s={s} />
-            ))}
-          </div>
+      {d.worth !== null && (
+        <div style={{ fontSize: compact ? 18 : 22, fontWeight: 800, color: "var(--ink)", marginBottom: 10 }}>
+          {money(d.worth, d.currency)}
         </div>
       )}
 
-      {/* ── Accounts Portfolio Grid ── */}
-      <Section
-        title="Accounts Portfolio"
-        action={
+      {!compact && contacts.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {contacts.map(p => (
+            <span key={p.id} style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "2px 9px", borderRadius: 999, fontSize: 11, fontWeight: 500,
+              background: "var(--line2)", color: "var(--ink2)",
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+                background: p.warmth === "ally" ? "#22c55e" : p.warmth === "warm" ? "#f59e0b" : p.warmth === "guarded" ? "#ef4444" : "#d1d5db",
+              }} />
+              {p.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {!compact && (
+        <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
           <button
-            onClick={() => go("/accounts")}
-            className="text-[12.5px] font-semibold text-brand hover:underline"
+            type="button"
+            onClick={e => { e.stopPropagation(); openComposer({ attach: `d:${d.id}` }); }}
+            style={{ fontSize: 12, color: "var(--mute)", background: "none", border: "none", cursor: "pointer" }}
           >
-            View all ({ACCOUNTS.length}) →
+            + Add note
           </button>
-        }
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {ACCOUNTS.map((a) => {
+        </div>
+      )}
+    </article>
+  );
+}
+
+/* ══════ CONTACT ROW ════════════════════════════════════════════════ */
+export function ContactRow({ p }: { p: Person }) {
+  const { go } = useApp();
+  return (
+    <div
+      className="card"
+      onClick={() => go(`/p/${p.id}`)}
+      style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "box-shadow .15s" }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,.06)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = ""; }}
+    >
+      <Avatar name={p.name} size={36} hue={p.acct === "A" ? "blue" : "purple"} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</div>
+        <div style={{ fontSize: 12, color: "var(--mute)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {p.title || "—"}
+        </div>
+      </div>
+      <WarmthBadge warmth={p.warmth} />
+      <div style={{ fontSize: 11, color: "var(--faint)", flexShrink: 0 }}>{p.last}</div>
+      <span style={{ color: "var(--faint)" }}>›</span>
+    </div>
+  );
+}
+
+/* ══════ ACTION ROW ════════════════════════════════════════════════ */
+export function ActionRow({ m, full = false }: { m: Move; full?: boolean }) {
+  const { go } = useApp();
+  const isUrgent = m.dueISO <= new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+  const acct = ACCOUNTS.find(a => a.id === m.acct);
+  return (
+    <div
+      className="card"
+      onClick={() => go(`/m/${m.id}`)}
+      style={{
+        padding: "13px 16px", cursor: "pointer",
+        display: "flex", alignItems: "flex-start", gap: 12,
+        borderLeft: `3px solid ${isUrgent ? "var(--bad)" : "var(--brand)"}`,
+        transition: "box-shadow .15s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,.06)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = ""; }}
+    >
+      <div style={{
+        width: 22, height: 22, borderRadius: 11, flexShrink: 0,
+        background: m.g === 1 ? "var(--brand)" : "var(--line2)",
+        color: m.g === 1 ? "#fff" : "var(--mute)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 11, fontWeight: 800, marginTop: 1,
+      }}>{m.g}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.4 }}>{m.action}</div>
+        {full && m.why && (
+          <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 4, lineHeight: 1.4 }}>{m.why}</div>
+        )}
+        <div style={{ marginTop: 6, display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {m.owner && <Tag tone="gray">👤 {m.owner}</Tag>}
+          {acct && <Tag tone="blue">{acct.name}</Tag>}
+        </div>
+      </div>
+      <div style={{
+        flexShrink: 0, fontSize: 12, textAlign: "right",
+        fontWeight: isUrgent ? 700 : 400,
+        color: isUrgent ? "var(--bad)" : "var(--mute)",
+      }}>{m.due}</div>
+    </div>
+  );
+}
+
+/* ══════ RISK ROW ══════════════════════════════════════════════════ */
+export function RiskRow({ r, full = false }: { r: Risk; full?: boolean }) {
+  const laneLabel: Record<string, string> = {
+    deadline: "Deadline", warmth: "Relationship", stall: "Stalled", signal: "Alert",
+  };
+  const sevBorder = { high: "var(--bad)", med: "var(--warn)", low: "var(--faint)" }[r.sev] ?? "var(--faint)";
+  const acct = ACCOUNTS.find(a => a.id === r.acct);
+  return (
+    <div className="card" style={{ padding: "14px 16px", borderLeft: `3px solid ${sevBorder}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.4 }}>{r.what}</div>
+          <div style={{ marginTop: 6, display: "flex", gap: 5, flexWrap: "wrap" }}>
+            <SevBadge sev={r.sev} />
+            <Tag tone="gray">{laneLabel[r.lane] ?? r.lane}</Tag>
+            {acct && <Tag tone="blue">{acct.name}</Tag>}
+          </div>
+        </div>
+        {r.turnsBadAt && (
+          <div style={{ flexShrink: 0, fontSize: 11, color: r.sev === "high" ? "var(--bad)" : "var(--mute)", textAlign: "right", paddingTop: 2 }}>
+            By {r.turnsBadAt}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════ SIGNAL ROW ════════════════════════════════════════════════ */
+function SignalRow({ s }: { s: Signal }) {
+  return (
+    <div className="card" style={{ padding: "14px 18px", borderLeft: "3px solid var(--bad)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>🚨 {s.kind}</div>
+          <div style={{ fontSize: 13, color: "var(--ink2)", marginTop: 4, lineHeight: 1.5 }}>{s.text}</div>
+        </div>
+        <div style={{ flexShrink: 0, fontSize: 11, color: "var(--mute)", textAlign: "right" }}>{s.at}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════ DASHBOARD ═══════════════════════════════════════════════ */
+export function Dashboard() {
+  const { go } = useApp();
+
+  const highRisks  = RISKS.filter(r => r.sev === "high").length;
+  const openActions = MOVES.length;
+  const urgent = SIGNALS.filter(s => {
+    const d = s.atISO ? new Date(s.atISO) : null;
+    return d && d.getTime() - Date.now() < 7 * 86400000;
+  });
+
+  return (
+    <div>
+      {/* stat strip */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 32 }}>
+        {[
+          { label: "Accounts",     value: ACCOUNTS.length, icon: "🏢", bg: "var(--brand-tint)",  fg: "var(--brand-dark)" },
+          { label: "Open Deals",   value: DEALS.length,    icon: "🤝", bg: "var(--ok-tint)",     fg: "#15803d" },
+          { label: "Actions Due",  value: openActions,     icon: "✅", bg: "var(--warn-tint)",   fg: "#92400e" },
+          { label: "High Risks",   value: highRisks,       icon: "⚠️", bg: "var(--bad-tint)",    fg: "#991b1b" },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding: "18px 20px", background: s.bg, borderColor: "transparent" }}>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ fontSize: 30, fontWeight: 900, color: s.fg, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: s.fg, opacity: .7, marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* alerts */}
+      {urgent.length > 0 && (
+        <Section title="🔔 Alerts — Action Needed">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {urgent.map(s => <SignalRow key={s.id} s={s} />)}
+          </div>
+        </Section>
+      )}
+
+      {/* accounts */}
+      <Section title="Accounts" action={<SmallLink onClick={() => go("/accounts")}>View all →</SmallLink>}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+          {ACCOUNTS.map(a => {
             const t = TOTALS[a.id];
-            const deals = DEALS.filter((d) => d.acct === a.id);
-            const people = PEOPLE.filter((p) => p.acct === a.id);
-            const moves = MOVES.filter((m) => m.acct === a.id);
-            const hue = a.id === "A" ? "#2b6cb0" : a.id === "B" ? "#7c3aed" : "#059669";
-
+            const deals = DEALS.filter(d => d.acct === a.id);
+            const people = PEOPLE.filter(p => p.acct === a.id);
             return (
-              <article
-                key={a.id}
-                onClick={() => go(`/a/${a.id}`)}
-                className="group flex flex-col justify-between overflow-hidden rounded-[22px] border border-line bg-white shadow-xs transition-all hover:border-brand-line hover:shadow-md cursor-pointer"
+              <div key={a.id} className="card" onClick={() => go(`/a/${a.id}`)}
+                style={{ padding: "18px 20px", cursor: "pointer", transition: "box-shadow .15s" }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,.08)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = ""; }}
               >
-                {/* Header */}
-                <div className="border-b border-line2 bg-panel px-5 py-4 group-hover:bg-brand-tint/30 transition-colors">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar name={a.name} size={38} tone={hue} />
-                      <div>
-                        <h3 className="font-bold text-[15px] text-ink leading-tight group-hover:text-brand-dark transition-colors">
-                          {a.name}
-                        </h3>
-                        <div className="text-[12px] text-mute mt-0.5">
-                          Account {a.id} · {a.currency}
-                        </div>
-                      </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <Avatar name={a.name} size={40} hue={a.id === "A" ? "blue" : "purple"} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>{a.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--mute)" }}>
+                      {deals.length} deals · {people.length} contacts · {a.currency}
                     </div>
-                    <Ico n="right" size={15} className="text-faint group-hover:text-brand transition-colors mt-1" />
                   </div>
                 </div>
-
-                {/* Financial Summary */}
-                <div className="p-5 space-y-2.5">
-                  <div className="flex items-baseline justify-between border-b border-line2 pb-2 text-[13px]">
-                    <span className="text-mute font-medium">Committed (Backed)</span>
-                    <span className="font-bold text-ok tabular-nums">
-                      {money(t?.backed ?? 0, t?.currency ?? a.currency)}
-                    </span>
+                {t && (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ flex: 1, background: "var(--ok-tint)", borderRadius: 10, padding: "8px 12px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#15803d", letterSpacing: ".07em", textTransform: "uppercase" }}>Committed</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#15803d", marginTop: 2 }}>{money(t.backed, t.currency)}</div>
+                    </div>
+                    <div style={{ flex: 1, background: "var(--warn-tint)", borderRadius: 10, padding: "8px 12px", textAlign: "center" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#92400e", letterSpacing: ".07em", textTransform: "uppercase" }}>Forecasted</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#92400e", marginTop: 2 }}>{money(t.claimed, t.currency)}</div>
+                    </div>
                   </div>
-                  <div className="flex items-baseline justify-between border-b border-line2 pb-2 text-[13px]">
-                    <span className="text-mute font-medium">Forecasted (Claimed)</span>
-                    <span className="font-bold text-brand-dark tabular-nums">
-                      {money(t?.claimed ?? 0, t?.currency ?? a.currency)}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between text-[13px]">
-                    <span className="text-mute font-medium">Unvalued Deals</span>
-                    <span className="font-semibold text-warn">
-                      {t?.unknownCount ?? 0} {t?.unknownCount === 1 ? "deal" : "deals"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Footer Badges */}
-                <div className="border-t border-line2 bg-panel/60 px-5 py-3 flex items-center justify-between text-[12px] text-mute">
-                  <span>{deals.length} deals · {people.length} contacts</span>
-                  {moves.length > 0 && (
-                    <span className="font-semibold text-brand">
-                      {moves.length} {moves.length === 1 ? "action" : "actions"} due
-                    </span>
-                  )}
-                </div>
-              </article>
+                )}
+              </div>
             );
           })}
         </div>
       </Section>
 
-      {/* ── Top Priority Moves ── */}
-      <Section
-        title="Immediate Moves to Advance Pipeline"
-        action={
-          <button
-            onClick={() => go("/actions")}
-            className="text-[12.5px] font-semibold text-brand hover:underline"
-          >
-            All actions ({MOVES.length}) →
-          </button>
-        }
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {MOVES.slice(0, 4).map((m, i) => (
-            <MoveCard key={m.id} m={m} rank={i + 1} />
-          ))}
+      {/* upcoming actions */}
+      <Section title="Upcoming Actions" action={<SmallLink onClick={() => go("/actions")}>View all →</SmallLink>}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {MOVES.slice(0, 4).map(m => <ActionRow key={m.id} m={m} />)}
+          {MOVES.length === 0 && <EmptyState icon="✅" title="No actions" />}
         </div>
       </Section>
 
-      {/* ── Top Risks Radar ── */}
-      {RISKS.length > 0 && (
-        <Section
-          title="Account Risk Radar"
-          action={
-            <button
-              onClick={() => go("/risks")}
-              className="text-[12.5px] font-semibold text-brand hover:underline"
-            >
-              All risks ({RISKS.length}) →
-            </button>
-          }
-        >
-          <div className="overflow-hidden rounded-[20px] border border-line bg-white shadow-xs">
-            {RISKS.slice(0, 5).map((r) => (
-              <RiskRow key={r.id} r={r} />
-            ))}
+      {/* top risks */}
+      {RISKS.filter(r => r.sev === "high").length > 0 && (
+        <Section title="Top Risks" action={<SmallLink onClick={() => go("/risks")}>View all →</SmallLink>}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {RISKS.filter(r => r.sev === "high").slice(0, 3).map(r => <RiskRow key={r.id} r={r} />)}
           </div>
         </Section>
       )}
@@ -299,471 +346,289 @@ export function Dashboard() {
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   ACCOUNT DETAIL SCREEN (Supports A, B, K)
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ ACCOUNT DETAIL ══════════════════════════════════════════ */
 export function AccountDetail({ id }: { id: string }) {
-  const { openComposer } = useApp();
-  const [tab, setTab] = useState<"deals" | "people" | "moves" | "risks" | "gaps">("deals");
+  const { go, openComposer } = useApp();
+  const [tab, setTab] = useState<"deals" | "contacts" | "actions" | "risks">("deals");
 
-  const a = ACCOUNTS.find((x) => x.id === id);
-  const t = TOTALS[id];
-  const deals = DEALS.filter((d) => d.acct === id);
-  const people = PEOPLE.filter((p) => p.acct === id);
-  const moves = MOVES.filter((m) => m.acct === id);
-  const risks = RISKS.filter((r) => r.acct === id);
-  const gaps = GAPS.filter((g) => g.acct === id);
-  const signals = SIGNALS.filter((s) => s.acct === id);
+  const a       = ACCOUNTS.find(x => x.id === id);
+  const t       = TOTALS[id];
+  const deals   = DEALS.filter(d => d.acct === id);
+  const contacts= PEOPLE.filter(p => p.acct === id);
+  const actions = MOVES.filter(m => m.acct === id).sort((a, b) => a.g - b.g);
+  const risks   = RISKS.filter(r => r.acct === id)
+    .sort((a, b) => ({ high: 0, med: 1, low: 2 }[a.sev] ?? 2) - ({ high: 0, med: 1, low: 2 }[b.sev] ?? 2));
+  const signals = SIGNALS.filter(s => s.acct === id);
+  const gaps    = GAPS.filter(g => g.acct === id);
 
-  if (!a) return <EmptyState title="Account not found" sub={`No record for ID ${id}`} />;
-
-  const hue = id === "A" ? "#2b6cb0" : id === "B" ? "#7c3aed" : "#059669";
+  if (!a) return <EmptyState icon="🏢" title="Account not found" />;
 
   const tabs = [
-    { key: "deals", label: `Deals (${deals.length})`, icon: "target" },
-    { key: "people", label: `Stakeholders (${people.length})`, icon: "user" },
-    { key: "moves", label: `Actions (${moves.length})`, icon: "clock" },
-    { key: "risks", label: `Risks (${risks.length})`, icon: "alert" },
-    { key: "gaps", label: `Open Questions (${gaps.length})`, icon: "help" },
+    { key: "deals",    label: `Deals (${deals.length})` },
+    { key: "contacts", label: `Contacts (${contacts.length})` },
+    { key: "actions",  label: `Actions (${actions.length})` },
+    { key: "risks",    label: `Risks (${risks.length})` },
   ] as const;
 
   return (
-    <div className="space-y-6 max-w-[1000px] mx-auto">
-      {/* ── Account Hero Card ── */}
-      <div className="rounded-[24px] border border-line bg-white p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <Avatar name={a.name} size={54} tone={hue} />
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-[22px] font-extrabold text-ink leading-tight">
-                  {a.name}
-                </h1>
-                <Chip tone={id === "A" ? "blue" : id === "B" ? "gray" : "green"}>
-                  {a.currency}
-                </Chip>
-              </div>
-              <div className="text-[13px] text-mute mt-1">
-                Account {a.id} · {deals.length} deals · {people.length} contacts on file
-              </div>
+    <div style={{ maxWidth: 820, margin: "0 auto" }}>
+      {/* header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
+        <Avatar name={a.name} size={52} hue={id === "A" ? "blue" : "purple"} />
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, lineHeight: 1.2 }}>{a.name}</h1>
+          <div style={{ fontSize: 13, color: "var(--mute)", marginTop: 3 }}>
+            {deals.length} deals · {contacts.length} contacts · {a.currency}
+          </div>
+          {signals.length > 0 && (
+            <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {signals.map(s => (
+                <span key={s.id} className="tag tag-red">🚨 {s.kind} · {s.at}</span>
+              ))}
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Btn
-              primary
-              icon="note"
-              onClick={() => openComposer({ attach: `acct:${id}` })}
-            >
-              Add Note
-            </Btn>
-          </div>
+          )}
         </div>
-
-        {/* Financial Highlights */}
-        {t && (
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 border-t border-line2">
-            <div className="rounded-[14px] bg-ok-tint p-3 border border-ok-line/60">
-              <div className="text-[10.5px] font-bold text-ok uppercase tracking-wider">
-                Committed (Backed)
-              </div>
-              <div className="text-[19px] font-black text-ok mt-0.5">
-                {money(t.backed, t.currency)}
-              </div>
-            </div>
-            <div className="rounded-[14px] bg-brand-tint p-3 border border-brand-line/60">
-              <div className="text-[10.5px] font-bold text-brand-dark uppercase tracking-wider">
-                Forecasted (Claimed)
-              </div>
-              <div className="text-[19px] font-black text-brand-dark mt-0.5">
-                {money(t.claimed, t.currency)}
-              </div>
-            </div>
-            <div className="rounded-[14px] bg-panel p-3 border border-line">
-              <div className="text-[10.5px] font-bold text-mute uppercase tracking-wider">
-                Unvalued Deals
-              </div>
-              <div className="text-[19px] font-black text-ink mt-0.5">
-                {t.unknownCount}
-              </div>
-            </div>
-            <div className="rounded-[14px] bg-panel p-3 border border-line">
-              <div className="text-[10.5px] font-bold text-mute uppercase tracking-wider">
-                Open Offers
-              </div>
-              <div className="text-[19px] font-black text-ink mt-0.5">
-                {money(t.openOffers, t.currency)}
-              </div>
-            </div>
-          </div>
-        )}
+        <Btn primary onClick={() => openComposer({ attach: `acct:${id}` })}>+ Note</Btn>
       </div>
 
-      {/* ── Active Signals ── */}
-      {signals.length > 0 && (
-        <div className="rounded-[18px] border border-bad-line bg-bad-tint/40 p-4">
-          <div className="flex items-center gap-2 text-[12px] font-bold text-bad uppercase tracking-wider mb-2">
-            <Ico n="signal" size={14} />
-            Recent account signals ({signals.length})
-          </div>
-          <div className="space-y-1.5">
-            {signals.map((s) => (
-              <div key={s.id} className="text-[13px] text-ink font-medium">
-                • {s.text}
-              </div>
-            ))}
-          </div>
+      {/* value strip */}
+      {t && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
+          {[
+            { label: "Committed",  value: money(t.backed, t.currency),              bg: "var(--ok-tint)",   fg: "#15803d" },
+            { label: "Forecasted", value: money(t.claimed, t.currency),             bg: "var(--warn-tint)", fg: "#92400e" },
+            ...(t.unknownCount > 0 ? [{ label: "No Value Yet", value: `${t.unknownCount} deals`, bg: "var(--line2)", fg: "var(--mute)" }] : []),
+          ].map(x => (
+            <div key={x.label} style={{ background: x.bg, borderRadius: 12, padding: "10px 18px", textAlign: "center" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: x.fg, letterSpacing: ".07em", textTransform: "uppercase" }}>{x.label}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: x.fg, marginTop: 2 }}>{x.value}</div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* ── Tabbed View ── */}
-      <div className="rounded-[22px] border border-line bg-white shadow-xs overflow-hidden">
-        {/* Tab Headers */}
-        <div className="flex border-b border-line bg-panel px-4 overflow-x-auto no-scrollbar">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold transition-all border-b-2 whitespace-nowrap ${
-                tab === t.key
-                  ? "border-brand text-brand bg-white"
-                  : "border-transparent text-mute hover:text-ink"
-              }`}
-            >
-              <Ico n={t.icon} size={14} />
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <div className="p-6">
-          {tab === "deals" && (
-            <div className="space-y-4">
-              {deals.length === 0 ? (
-                <EmptyState title="No deals on file" sub="No opportunities recorded yet." />
-              ) : (
-                deals.map((d) => <DealCard key={d.id} d={d} />)
-              )}
-            </div>
-          )}
-
-          {tab === "people" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {people.length === 0 ? (
-                <EmptyState title="No stakeholders" sub="No contacts identified yet." />
-              ) : (
-                people.map((p) => <ContactCard key={p.id} p={p} />)
-              )}
-            </div>
-          )}
-
-          {tab === "moves" && (
-            <div className="space-y-3.5">
-              {moves.length === 0 ? (
-                <EmptyState title="No open actions" sub="All caught up." />
-              ) : (
-                moves.map((m, i) => <MoveCard key={m.id} m={m} rank={i + 1} variant="expanded" />)
-              )}
-            </div>
-          )}
-
-          {tab === "risks" && (
-            <div className="overflow-hidden rounded-[16px] border border-line">
-              {risks.length === 0 ? (
-                <EmptyState title="No risks flagged" sub="No blockers on file." />
-              ) : (
-                risks.map((r) => <RiskRow key={r.id} r={r} />)
-              )}
-            </div>
-          )}
-
-          {tab === "gaps" && (
-            <div className="space-y-3.5">
-              {gaps.length === 0 ? (
-                <EmptyState title="No open questions" sub="Information is complete." />
-              ) : (
-                gaps.map((g) => <GapRow key={g.id} g={g} />)
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   SUB-COMPONENTS (DealCard, ContactCard, Details)
-   ═════════════════════════════════════════════════════════════════════════ */
-
-export function DealCard({ d }: { d: Deal }) {
-  const { go, openComposer } = useApp();
-  return (
-    <article
-      onClick={() => go(`/d/${d.id}`)}
-      className="rounded-[18px] border border-line bg-white p-5 shadow-xs hover:border-brand-line hover:shadow-md transition-all cursor-pointer"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <StageChip stage={d.stage} />
-            {d.bucket && (
-              <Chip tone={d.bucket === "backed" ? "green" : d.bucket === "claimed" ? "amber" : "gray"}>
-                {d.bucket === "backed" ? "Committed" : d.bucket === "claimed" ? "Forecasted" : "No value"}
-              </Chip>
-            )}
-          </div>
-          <h3 className="text-[16px] font-bold text-ink hover:text-brand-dark transition-colors">
-            {d.name}
-          </h3>
-          {d.deadline && (
-            <div className="text-[12.5px] text-warn font-medium mt-1 flex items-center gap-1">
-              <Ico n="calendar" size={13} />
-              {d.deadline.label}
-            </div>
-          )}
-        </div>
-
-        <div className="text-right">
-          <div className="text-[20px] font-black text-ink tabular-nums">
-            {d.worth !== null ? money(d.worth, d.currency) : "—"}
-          </div>
-          {d.owner && (
-            <div className="text-[12px] text-mute mt-1">
-              Owner: <span className="font-medium text-ink2">{d.owner}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Blocker / Status Pill */}
-      {d.notCounted ? (
-        <div className="mt-3.5 rounded-[12px] bg-bad-tint/50 border border-bad-line/50 p-2.5 text-[12.5px] text-bad flex items-start gap-2">
-          <Ico n="alert" size={14} className="shrink-0 mt-0.5" />
-          <span><b>Note:</b> {d.notCounted}</span>
-        </div>
-      ) : d.why ? (
-        <div className="mt-3.5 text-[12.5px] text-mute line-clamp-1">
-          {d.why}
-        </div>
-      ) : null}
-
-      {/* Stakeholders grid */}
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-line2">
-        {(["decider", "payer", "user", "blocker"] as const).map((r) => (
-          <RoleSlot key={r} role={r} d={d} />
+      {/* tabs */}
+      <div style={{ display: "flex", borderBottom: "2px solid var(--line)", marginBottom: 20 }}>
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} style={{
+            padding: "10px 18px", fontSize: 14,
+            fontWeight: tab === t.key ? 700 : 400,
+            color: tab === t.key ? "var(--brand)" : "var(--mute)",
+            borderBottom: `2px solid ${tab === t.key ? "var(--brand)" : "transparent"}`,
+            marginBottom: -2, background: "none", border: "none",
+            borderBottomStyle: "solid", cursor: "pointer", transition: "color .15s",
+          }}>{t.label}</button>
         ))}
       </div>
-    </article>
-  );
-}
 
-export function ContactCard({ p }: { p: Person }) {
-  const { go } = useApp();
-  return (
-    <div
-      onClick={() => go(`/p/${p.id}`)}
-      className="flex items-center gap-3.5 rounded-[16px] border border-line bg-white p-4 shadow-xs hover:border-brand-line hover:shadow-sm transition-all cursor-pointer"
-    >
-      <Avatar name={p.name} size={40} tone={p.acct === "A" ? "#2b6cb0" : p.acct === "B" ? "#7c3aed" : "#059669"} />
-      <div className="min-w-0 flex-1">
-        <h4 className="font-bold text-[14.5px] text-ink leading-tight">{p.name}</h4>
-        <div className="text-[12px] text-mute truncate mt-0.5">{p.title || "—"}</div>
-        <div className="mt-1.5 flex items-center gap-2">
-          <WarmthChip w={p.warmth} />
-          {!p.met && <Chip dashed>never met</Chip>}
+      {tab === "deals" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {deals.length === 0 ? <EmptyState icon="🤝" title="No deals yet" /> : deals.map(d => <DealCard key={d.id} d={d} />)}
         </div>
-      </div>
-      <Ico n="right" size={15} className="text-faint" />
+      )}
+      {tab === "contacts" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {contacts.length === 0 ? <EmptyState icon="👤" title="No contacts" /> : contacts.map(p => <ContactRow key={p.id} p={p} />)}
+        </div>
+      )}
+      {tab === "actions" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {actions.length === 0 ? <EmptyState icon="✅" title="No actions" /> : actions.map(m => <ActionRow key={m.id} m={m} full />)}
+        </div>
+      )}
+      {tab === "risks" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {risks.length === 0 ? <EmptyState icon="🛡️" title="No risks flagged" /> : risks.map(r => <RiskRow key={r.id} r={r} full />)}
+          {gaps.length > 0 && (
+            <>
+              <div style={{ marginTop: 16, fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".06em" }}>Open Questions</div>
+              {gaps.map(g => <GapRow key={g.id} g={g} />)}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   DEAL DETAIL SCREEN
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ DEAL DETAIL ═════════════════════════════════════════════ */
 export function DealDetail({ id }: { id: string }) {
   const { openComposer } = useApp();
-  const d = DEALS.find((x) => x.id === id);
-  if (!d) return <EmptyState title="Deal not found" />;
-
+  const d = DEALS.find(x => x.id === id);
+  if (!d) return <EmptyState icon="🤝" title="Deal not found" />;
+  const contacts = PEOPLE.filter(p => d.roles && Object.values(d.roles).some(r => r?.person === p.id));
+  const actions  = MOVES.filter(m => m.deal === id);
+  const roleLabel: Record<string, string> = {
+    decider: "Decision Maker", payer: "Budget Owner",
+    user: "End User", blocker: "Blocker",
+  };
   return (
-    <div className="max-w-[800px] mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <StageChip stage={d.stage} />
-            <Chip tone={d.bucket === "backed" ? "green" : "amber"}>{d.bucket}</Chip>
+    <div style={{ maxWidth: 720, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
+            <StageBadge stage={d.stage} />
+            <ValueBadge bucket={d.bucket} />
           </div>
-          <h1 className="text-[24px] font-extrabold text-ink leading-tight">{d.name}</h1>
-          <div className="text-[13px] text-mute mt-1">
-            Account {d.acct} · {d.currency}
-          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.3 }}>{d.name}</h1>
+          {d.deadline && <div style={{ fontSize: 13, color: "var(--warn)", marginTop: 4 }}>📅 {d.deadline.label}</div>}
+          {d.owner && <div style={{ fontSize: 13, color: "var(--mute)", marginTop: 2 }}>Owner: {d.owner}</div>}
         </div>
-        <Btn primary icon="note" onClick={() => openComposer({ attach: `d:${id}` })}>
-          Add Note
-        </Btn>
+        <Btn primary onClick={() => openComposer({ attach: `d:${id}` })}>+ Note</Btn>
       </div>
 
       {d.worth !== null && (
-        <div className="rounded-[18px] border border-line bg-white p-5 shadow-xs">
-          <Label className="mb-1">Deal Value</Label>
-          <div className="text-[32px] font-black text-ink">{money(d.worth, d.currency)}</div>
+        <div className="card" style={{ padding: "16px 20px", marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 4 }}>Deal Value</div>
+          <div style={{ fontSize: 30, fontWeight: 900 }}>{money(d.worth, d.currency)}</div>
         </div>
       )}
 
-      {/* Stakeholders Matrix */}
-      <div className="rounded-[18px] border border-line bg-white p-5 shadow-xs space-y-3">
-        <Label>Stakeholder Coverage</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {(["decider", "payer", "user", "blocker"] as const).map((r) => (
-            <RoleSlot key={r} role={r} d={d} />
-          ))}
+      {Object.keys(d.roles ?? {}).length > 0 && (
+        <div className="card" style={{ padding: "16px 20px", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14 }}>Stakeholders</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Object.entries(d.roles ?? {}).map(([role, cell]) => {
+              if (!cell) return null;
+              const p = PEOPLE.find(x => x.id === cell.person);
+              return (
+                <div key={role} style={{ display: "flex", gap: 12 }}>
+                  <div style={{ width: 110, fontSize: 11, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".04em", paddingTop: 2, flexShrink: 0 }}>
+                    {roleLabel[role] ?? role}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{p?.name ?? cell.person}</div>
+                    {p?.title && <div style={{ fontSize: 12, color: "var(--mute)" }}>{p.title}</div>}
+                    {cell.waiting && (
+                      <div style={{ marginTop: 5, padding: "6px 10px", borderRadius: 8, background: "var(--warn-tint)", fontSize: 12, color: "#92400e", lineHeight: 1.4 }}>
+                        ⏳ {cell.waiting.slice(0, 180)}{cell.waiting.length > 180 ? "…" : ""}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {actions.length > 0 && (
+        <div className="card" style={{ padding: "16px 20px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 12 }}>Actions</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {actions.map(m => <ActionRow key={m.id} m={m} full />)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   CONTACT DETAIL SCREEN
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ CONTACT DETAIL ══════════════════════════════════════════ */
 export function ContactDetail({ id }: { id: string }) {
   const { openComposer } = useApp();
-  const p = PEOPLE.find((x) => x.id === id);
-  if (!p) return <EmptyState title="Contact not found" />;
-
-  const relatedDeals = DEALS.filter((d) => p.deals.includes(d.id));
-
+  const p = PEOPLE.find(x => x.id === id);
+  if (!p) return <EmptyState icon="👤" title="Contact not found" />;
+  const deals = DEALS.filter(d => p.deals.includes(d.id));
   return (
-    <div className="max-w-[680px] mx-auto space-y-6">
-      <div className="flex items-start gap-4">
-        <Avatar name={p.name} size={60} tone={p.acct === "A" ? "#2b6cb0" : p.acct === "B" ? "#7c3aed" : "#059669"} />
-        <div className="flex-1">
-          <h1 className="text-[24px] font-extrabold text-ink">{p.name}</h1>
-          <div className="text-[14px] text-mute mt-0.5">{p.title || "—"}</div>
-          <div className="mt-2.5 flex items-center gap-2">
-            <WarmthChip w={p.warmth} />
-            {!p.met && <Chip dashed>never met</Chip>}
+    <div style={{ maxWidth: 600, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
+        <Avatar name={p.name} size={56} hue={p.acct === "A" ? "blue" : "purple"} />
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>{p.name}</h1>
+          <div style={{ fontSize: 14, color: "var(--mute)", marginTop: 2 }}>{p.title || "—"}</div>
+          <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+            <WarmthBadge warmth={p.warmth} />
+            {p.met && <Tag tone="blue">Met</Tag>}
           </div>
         </div>
-        <Btn primary icon="note" onClick={() => openComposer({ attach: `p:${id}` })}>
-          Add Note
-        </Btn>
+        <Btn primary onClick={() => openComposer({ attach: `p:${id}` })}>+ Note</Btn>
       </div>
 
-      <div className="rounded-[18px] border border-line bg-white p-5 shadow-xs">
-        <Label className="mb-2">Last Contact Record</Label>
-        <div className="text-[14px] text-ink font-medium">{p.last || "No recent contact on file."}</div>
+      <div className="card" style={{ padding: "16px 20px", marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "10px 16px", fontSize: 13 }}>
+          <span style={{ color: "var(--mute)", fontWeight: 600 }}>Last contact</span>
+          <span>{p.last}</span>
+        </div>
       </div>
 
-      {relatedDeals.length > 0 && (
-        <div className="space-y-3">
-          <Label>Associated Deals</Label>
-          {relatedDeals.map((d) => (
-            <DealCard key={d.id} d={d} />
-          ))}
+      {deals.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 10 }}>Deals</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {deals.map(d => <DealCard key={d.id} d={d} compact />)}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   ACTION DETAIL SCREEN
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ ACTION DETAIL ═══════════════════════════════════════════ */
 export function ActionDetail({ id }: { id: string }) {
   const { openComposer } = useApp();
-  const m = MOVES.find((x) => x.id === id);
-  if (!m) return <EmptyState title="Action not found" />;
-
+  const m = MOVES.find(x => x.id === id);
+  if (!m) return <EmptyState icon="✅" title="Action not found" />;
+  const deal = DEALS.find(d => d.id === m.deal);
+  const acct = ACCOUNTS.find(a => a.id === m.acct);
   return (
-    <div className="max-w-[700px] mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-[22px] font-extrabold text-ink leading-tight flex-1">
-          {m.action}
-        </h1>
-        <Btn primary icon="note" onClick={() => openComposer({ attach: `d:${m.deal ?? ""}` })}>
-          Add Note
-        </Btn>
+    <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3, flex: 1 }}>{m.action}</h1>
+        <Btn primary onClick={() => openComposer({ attach: `d:${m.deal ?? ""}` })}>+ Note</Btn>
       </div>
-
-      <div className="rounded-[18px] border border-line bg-white p-5 shadow-xs space-y-3">
-        <div className="grid grid-cols-[100px_1fr] gap-2 text-[13.5px]">
-          <span className="text-mute font-semibold">Due Date</span>
-          <span className="font-bold text-ink">{m.due}</span>
-
-          <span className="text-mute font-semibold">Owner</span>
-          <span className="font-medium text-ink">{m.owner}</span>
-
-          <span className="text-mute font-semibold">Account</span>
-          <span className="font-medium text-ink">{acctName(m.acct)}</span>
+      <div className="card" style={{ padding: "16px 20px", marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "110px 1fr", gap: "10px 16px", fontSize: 13 }}>
+          {([["Due", m.due], ["Owner", m.owner], ["Account", acct?.name ?? m.acct], ...(deal ? [["Deal", deal.name]] : [])] as [string, string][]).map(([k, v]) => (
+            <><span key={k} style={{ color: "var(--mute)", fontWeight: 600 }}>{k}</span><span>{v}</span></>
+          ))}
         </div>
       </div>
-
       {m.why && (
-        <div className="rounded-[18px] border border-line bg-white p-5 shadow-xs">
-          <Label className="mb-2">Rationale & Impact</Label>
-          <div className="text-[14px] text-ink2 leading-relaxed">{m.why}</div>
+        <div className="card" style={{ padding: "16px 20px", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>Why This Matters</div>
+          <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink2)" }}>{m.why}</div>
         </div>
       )}
-
       {m.ask && (
-        <div className="rounded-[18px] border border-brand-line bg-brand-tint/60 p-5">
-          <Label className="text-brand-dark mb-2">Recommended Talking Point / Email</Label>
-          <div className="italic text-[13.5px] text-ink leading-relaxed">
-            "{m.ask}"
-          </div>
+        <div className="card" style={{ padding: "16px 20px", background: "var(--brand-tint)", borderColor: "var(--brand-mid)" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--brand-dark)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>Suggested Message</div>
+          <div style={{ fontSize: 13, lineHeight: 1.6, color: "var(--ink2)", fontStyle: "italic" }}>"{m.ask}"</div>
         </div>
       )}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   ACCOUNTS LIST
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ ALL ACCOUNTS ════════════════════════════════════════════ */
 export function AccountsList() {
   const { go } = useApp();
   return (
-    <div className="max-w-[900px] mx-auto space-y-6">
-      <h1 className="text-[24px] font-extrabold text-ink">Accounts ({ACCOUNTS.length})</h1>
-      <div className="space-y-3.5">
-        {ACCOUNTS.map((a) => {
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Accounts</h1>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {ACCOUNTS.map(a => {
           const t = TOTALS[a.id];
-          const deals = DEALS.filter((d) => d.acct === a.id);
-          const people = PEOPLE.filter((p) => p.acct === a.id);
-          const hue = a.id === "A" ? "#2b6cb0" : a.id === "B" ? "#7c3aed" : "#059669";
-
+          const deals = DEALS.filter(d => d.acct === a.id);
+          const contacts = PEOPLE.filter(p => p.acct === a.id);
           return (
-            <div
-              key={a.id}
-              onClick={() => go(`/a/${a.id}`)}
-              className="flex items-center gap-4 rounded-[20px] border border-line bg-white p-5 shadow-xs hover:border-brand-line hover:shadow-md transition-all cursor-pointer"
+            <div key={a.id} className="card" onClick={() => go(`/a/${a.id}`)}
+              style={{ padding: "18px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 16, transition: "box-shadow .15s" }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,.07)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = ""; }}
             >
-              <Avatar name={a.name} size={48} tone={hue} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-[16px] text-ink">{a.name}</h3>
-                  <Chip tone={a.id === "A" ? "blue" : a.id === "B" ? "gray" : "green"}>{a.currency}</Chip>
-                </div>
-                <div className="text-[12.5px] text-mute mt-1">
-                  {deals.length} deals · {people.length} contacts
-                </div>
+              <Avatar name={a.name} size={44} hue={a.id === "A" ? "blue" : "purple"} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{a.name}</div>
+                <div style={{ fontSize: 12, color: "var(--mute)" }}>{deals.length} deals · {contacts.length} contacts · {a.currency}</div>
               </div>
               {t && (
-                <div className="text-right">
-                  <div className="text-[17px] font-black text-ok">{money(t.backed, t.currency)}</div>
-                  <div className="text-[11px] text-mute uppercase font-semibold">Committed</div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#15803d" }}>{money(t.backed, t.currency)}</div>
+                  <div style={{ fontSize: 11, color: "var(--mute)" }}>committed</div>
                 </div>
               )}
-              <Ico n="right" size={16} className="text-faint" />
+              <span style={{ color: "var(--faint)", fontSize: 18 }}>›</span>
             </div>
           );
         })}
@@ -772,99 +637,107 @@ export function AccountsList() {
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   ACTIONS LIST
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ ALL ACTIONS ═════════════════════════════════════════════ */
 export function ActionsList() {
-  const [filter, setFilter] = useState("all");
-  const filtered = filter === "all" ? MOVES : MOVES.filter((m) => m.acct === filter);
-
+  const [acctFilter, setAcctFilter] = useState("all");
+  const filtered = acctFilter === "all" ? MOVES : MOVES.filter(m => m.acct === acctFilter);
+  const sorted = [...filtered].sort((a, b) => a.dueISO.localeCompare(b.dueISO));
   return (
-    <div className="max-w-[900px] mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[24px] font-extrabold text-ink">Next Actions ({filtered.length})</h1>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded-[10px] border border-line bg-white px-3 py-1.5 text-[13px] text-ink outline-none"
-        >
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Actions</h1>
+        <select value={acctFilter} onChange={e => setAcctFilter(e.target.value)}
+          style={{ padding: "6px 12px", borderRadius: 10, border: "1px solid var(--line)", fontSize: 13, background: "var(--white)" }}>
           <option value="all">All accounts</option>
-          {ACCOUNTS.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
+          {ACCOUNTS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       </div>
-
-      <div className="space-y-4">
-        {filtered.map((m, i) => (
-          <MoveCard key={m.id} m={m} rank={i + 1} variant="expanded" />
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {sorted.length === 0 ? <EmptyState icon="✅" title="No actions" /> : sorted.map(m => <ActionRow key={m.id} m={m} full />)}
       </div>
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   RISKS LIST
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ ALL RISKS ═══════════════════════════════════════════════ */
 export function RisksList() {
+  const high = RISKS.filter(r => r.sev === "high");
+  const med  = RISKS.filter(r => r.sev === "med");
+  const low  = RISKS.filter(r => r.sev === "low");
   return (
-    <div className="max-w-[900px] mx-auto space-y-6">
-      <h1 className="text-[24px] font-extrabold text-ink">Risk Radar ({RISKS.length})</h1>
-      <div className="overflow-hidden rounded-[20px] border border-line bg-white shadow-xs">
-        {RISKS.map((r) => (
-          <RiskRow key={r.id} r={r} />
-        ))}
-      </div>
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Risks</h1>
+      {[{ label: "High", items: high }, { label: "Medium", items: med }, { label: "Low", items: low }].map(({ label, items }) =>
+        items.length > 0 ? (
+          <div key={label} style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--mute)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>
+              {label === "High" ? "🔴" : label === "Medium" ? "🟡" : "⚪"} {label}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {items.map(r => <RiskRow key={r.id} r={r} full />)}
+            </div>
+          </div>
+        ) : null
+      )}
+      {RISKS.length === 0 && <EmptyState icon="🛡️" title="No risks flagged" />}
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   NOTES LIST
-   ═════════════════════════════════════════════════════════════════════════ */
-
+/* ══════ NOTES ═══════════════════════════════════════════════════ */
 export function NotesList() {
-  const { notes, openComposer } = useApp();
-
+  const { notes } = useApp();
   return (
-    <div className="max-w-[800px] mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[24px] font-extrabold text-ink">Notes & Tasks ({notes.length})</h1>
-        <Btn primary icon="plus" onClick={() => openComposer({})}>
-          Add Note
-        </Btn>
-      </div>
-
-      {notes.length === 0 ? (
-        <EmptyState icon="note" title="No notes recorded yet" sub="Press '+ Add Note' to capture a note or task." />
-      ) : (
-        <div className="space-y-3">
-          {notes.map((n) => (
-            <div key={n.id} className="rounded-[18px] border border-line bg-white p-5 shadow-xs">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1 flex-1">
-                  <div className="text-[14.5px] text-ink leading-relaxed">{n.text}</div>
-                  <div className="flex items-center gap-2 pt-1 text-[11.5px] text-mute">
-                    <Chip tone="gray">{n.kind}</Chip>
-                    {n.attach && <span>Attached to: {n.attach}</span>}
-                    <span>• {n.at}</span>
+    <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Notes</h1>
+      {notes.length === 0
+        ? <EmptyState icon="📝" title="No notes yet" sub='Press "+" to add one' />
+        : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {notes.map(n => (
+              <div key={n.id} className="card" style={{ padding: "14px 18px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, lineHeight: 1.5 }}>{n.text}</div>
+                    <div style={{ marginTop: 6, display: "flex", gap: 6 }}>
+                      <Tag tone="gray">{n.kind}</Tag>
+                      {n.attach && <span style={{ fontSize: 11, color: "var(--faint)" }}>{n.attach}</span>}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: 11, color: "var(--faint)" }}>{n.at}</div>
+                    <div style={{ marginTop: 4 }}>
+                      {n.status === "queued"  && <Tag tone="amber">Queued</Tag>}
+                      {n.status === "sending" && <Tag tone="blue">Sending…</Tag>}
+                      {n.status === "sent"    && <Tag tone="green">Sent ✓</Tag>}
+                    </div>
                   </div>
                 </div>
-                <span className="shrink-0">
-                  <Chip tone={n.status === "sent" ? "green" : "amber"}>
-                    {n.status ?? "queued"}
-                  </Chip>
-                </span>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
     </div>
+  );
+}
+
+/* ══════ GAP ROW ════════════════════════════════════════════════ */
+function GapRow({ g }: { g: Gap }) {
+  return (
+    <div className="card" style={{ padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 10 }}>
+      <span style={{ fontSize: 16, flexShrink: 0 }}>❓</span>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>{g.what}</div>
+        {g.q && <div style={{ fontSize: 12, color: "var(--mute)", marginTop: 3 }}>{g.q}</div>}
+      </div>
+    </div>
+  );
+}
+
+function SmallLink({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button onClick={onClick} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--brand)", fontWeight: 600 }}>
+      {children}
+    </button>
   );
 }
